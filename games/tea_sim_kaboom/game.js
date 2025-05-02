@@ -4,7 +4,7 @@ kaboom({
     canvas: document.querySelector("#game"),
     width: 800,
     height: 600,
-    background: [240, 245, 241],
+    background: rgb(240, 245, 241),
 });
 
 // Game state
@@ -101,7 +101,8 @@ scene("game", () => {
         const area = add([
             rect(cultivatorWidth - 20, height()),
             pos(index * cultivatorWidth + 10, 0),
-            color(Color.fromRgba(0, 0, 0, 0.1)),
+            opacity(0.1),
+            color(rgb(0, 0, 0)),
             area(),
             "cultivator-area",
             { cultivator }
@@ -112,7 +113,7 @@ scene("game", () => {
             text(cultivator.name, { size: 20 }),
             pos(index * cultivatorWidth + cultivatorWidth/2, 30),
             anchor("center"),
-            color(0, 0, 0)
+            color(rgb(0, 0, 0))
         ]);
     });
 
@@ -153,7 +154,7 @@ scene("game", () => {
                 pos(catX, catY),
                 anchor("center"),
                 opacity(0.3),
-                color(200, 200, 200),
+                color(rgb(200, 200, 200)),
                 area(),
                 "cat-spot",
                 {
@@ -259,7 +260,7 @@ scene("game", () => {
                 text(`+${teaBonus}`, { size: 16 }),
                 pos(cat.spot.pos.add(0, -20)),
                 anchor("center"),
-                color(0, 255, 0),
+                color(rgb(0, 255, 0)),
                 lifespan(1),
                 move(UP, 100)
             ]);

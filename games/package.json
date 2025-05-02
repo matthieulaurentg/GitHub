@@ -5,7 +5,6 @@
   "description": "Test script for checking JavaScript errors in games",
   "main": "test-game-playwright.js",
   "scripts": {
-    "test:jsdom": "node test-game-jsdom.js",
     "test:playwright": "node test-game-playwright.js",
     "test": "node test-game-playwright.js"
   },
