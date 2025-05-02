@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Test script for checking JavaScript errors in games",
-  "main": "test-game-playwright.js",
+  "main": "test-game-playwright.mjs",
   "scripts": {
-    "test:playwright": "node test-game-playwright.js",
-    "test": "node test-game-playwright.js"
+    "test:playwright": "node test-game-playwright.mjs",
+    "test": "node test-game-playwright.mjs"
   },
   "dependencies": {
     "jsdom": "^22.1.0",

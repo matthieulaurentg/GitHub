@@ -1,5 +1,0 @@
-Never generate sprites yourself. Use emojis.
-Prefer using npm librairies for games like three.js or kaboom. 
-Always read and update index.html with new games (index.html is my game launcher)
-Always create a folder for each game
-For scripts, always use .mjs extension
