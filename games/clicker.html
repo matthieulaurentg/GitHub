@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clicker Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        #clickButton {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 36px;
+            color: white;
+            z-index: 2;
+        }
+
+        #upgradeSidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            transition: right 0.3s ease-in-out;
+            z-index: 3;
+            overflow-y: auto;
+        }
+
+        #upgradeSidebar.open {
+            right: 0;
+        }
+
+        #upgradeSidebar h3 {
+            margin-top: 0;
+        }
+
+        #upgradeSidebar button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #toggleSidebarButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            z-index: 4;
+        }
+    </style>
+</head>
+
+<body>
+    <img id="clickButton" src="https://cataas.com/cat" alt="Click Me!">
+    <div id="score">Score: 0</div>
+
+    <button id="toggleSidebarButton">Upgrades</button>
+
+    <div id="upgradeSidebar">
+        <h3>Upgrades</h3>
+        <button id="upgrade1">Increase Meow Volume (Cost: 10)</button>
+        <button id="upgrade2">Attract More Cats (Cost: 50)</button>
+        <button id="upgrade3">Score Multiplier (Cost: 100)</button>
+        <button id="upgrade4">Buy Catnip (Cost: 250)</button>
+        <button id="upgrade5">Get a Cat Tree (Cost: 500)</button>
+    </div>
+
+    <script>
+        const clickButton = document.getElementById('clickButton');
+        const scoreDisplay = document.getElementById('score');
+        const upgrade1Button = document.getElementById('upgrade1');
+        const upgrade2Button = document.getElementById('upgrade2');
+        const upgrade3Button = document.getElementById('upgrade3');
+        const upgrade4Button = document.getElementById('upgrade4');
+        const upgrade5Button = document.getElementById('upgrade5');
+        const upgradeSidebar = document.getElementById('upgradeSidebar');
+        const toggleSidebarButton = document.getElementById('toggleSidebarButton');
+        let score = 0;
+        let clickValue = 1;
+        let upgrade1Cost = 10;
+        let clicksPerSecond = 0;
+        let upgrade2Cost = 50;
+        let scoreMultiplier = 1;
+        let upgrade3Cost = 100;
+        let catnipBonus = 0;
+        let upgrade4Cost = 250;
+        let catTreeMultiplier = 1;
+        let upgrade5Cost = 500;
+        const catImages = [
+            "https://cataas.com/cat/gif",
+            "https://cataas.com/cat/cute",
+            "https://cataas.com/cat/says/hello",
+            "https://cataas.com/cat",
+        ];
+        let currentCatIndex = 0;
+
+        clickButton.addEventListener('click', () => {
+            score += clickValue * scoreMultiplier * catTreeMultiplier + catnipBonus;
+            scoreDisplay.textContent = `Score: ${score}`;
+        });
+
+        upgrade1Button.addEventListener('click', () => {
+            if (score >= upgrade1Cost) {
+                score -= upgrade1Cost;
+                clickValue++;
+                upgrade1Cost *= 2;
+                scoreDisplay.textContent = `Score: ${score}`;
+                upgrade1Button.textContent = `Increase Meow Volume (Cost: ${upgrade1Cost})`;
+            } else {
+                alert('Not enough score!');
+            }
+        });
+
+        upgrade2Button.addEventListener('click', () => {
+            if (score >= upgrade2Cost) {
+                score -= upgrade2Cost;
+                clicksPerSecond++;
+                upgrade2Cost *= 2;
+                scoreDisplay.textContent = `Score: ${score}`;
+                upgrade2Button.textContent = `Attract More Cats (Cost: ${upgrade2Cost})`;
+            } else {
+                alert('Not enough score!');
+            }
+        });
+
+        upgrade3Button.addEventListener('click', () => {
+            if (score >= upgrade3Cost) {
+                score -= upgrade3Cost;
+                scoreMultiplier *= 2;
+                upgrade3Cost *= 2;
+                scoreDisplay.textContent = `Score: ${score}`;
+                upgrade3Button.textContent = `Score Multiplier (Cost: ${upgrade3Cost})`;
+            } else {
+                alert('Not enough score!');
+            }
+        });
+
+        upgrade4Button.addEventListener('click', () => {
+            if (score >= upgrade4Cost) {
+                score -= upgrade4Cost;
+                catnipBonus += 5;
+                upgrade4Cost *= 2;
+                scoreDisplay.textContent = `Score: ${score}`;
+                upgrade4Button.textContent = `Buy Catnip (Cost: ${upgrade4Cost})`;
+            } else {
+                alert('Not enough score!');
+            }
+        });
+
+        upgrade5Button.addEventListener('click', () => {
+            if (score >= upgrade5Cost) {
+                score -= upgrade5Cost;
+                catTreeMultiplier *= 2;
+                upgrade5Cost *= 2;
+                scoreDisplay.textContent = `Score: ${score}`;
+                upgrade5Button.textContent = `Get a Cat Tree (Cost: ${upgrade5Cost})`;
+            } else {
+                alert('Not enough score!');
+            }
+        });
+
+        setInterval(() => {
+            score += clicksPerSecond * scoreMultiplier * catTreeMultiplier + catnipBonus;
+            scoreDisplay.textContent = `Score: ${score}`;
+        }, 1000);
+
+        setInterval(() => {
+            currentCatIndex = (currentCatIndex + 1) % catImages.length;
+            clickButton.src = catImages[currentCatIndex];
+        }, 2000);
+
+        toggleSidebarButton.addEventListener('click', () => {
+            upgradeSidebar.classList.toggle('open');
+        });
+    </script>
+</body>
+
+</html>

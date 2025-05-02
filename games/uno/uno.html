@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uno</title>
+    <link rel="stylesheet" href="uno.css">
+    <style>
+        #instructions {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="instructions">
+            <h3>How to Play:</h3>
+            <p>Click and drag a card from your hand to the discard pile to play it. Click the "Draw Card" button to draw a card.</p>
+        </div>
+        <div id="player-hand"></div>
+        <div id="discard-pile"></div>
+        <button id="draw-card">Draw Card</button>
+        <div id="ai-players">
+            <div id="ai-1">AI 1</div>
+            <div id="ai-2">AI 2</div>
+            <div id="ai-3">AI 3</div>
+        </div>
+    </div>
+    <script src="uno.js"></script>
+</body>
+</html>

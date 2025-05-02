@@ -1,0 +1,56 @@
+w<!DOCTYPE html>
+<html>
+<head>
+    <title>Aim Trainer</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+        #gameCanvas {
+            background-color: white;
+            border: 1px solid black;
+        }
+        #weaponSelect {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <select id="weaponSelect">
+        <option value="pistol">Pistol</option>
+        <option value="rifle">Rifle</option>
+        <option value="shotgun">Shotgun</option>
+    </select>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const weaponSelect = document.getElementById('weaponSelect');
+
+        let currentWeapon = 'pistol';
+
+        weaponSelect.addEventListener('change', (event) => {
+            currentWeapon = event.target.value;
+            console.log('Selected weapon:', currentWeapon);
+        });
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(50, 50, 20, 20);
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
