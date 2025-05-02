@@ -38,7 +38,7 @@ function initGame() {
 function renderCultivators() {
     const cultivatorGrid = document.getElementById('cultivator-grid');
     cultivatorGrid.innerHTML = gameState.cultivators.map(cultivator => `
-        <div class="cultivator">
+        <div class="cultivator ${getCultivatorClass(cultivator)}">
             <h3>${cultivator.name}</h3>
             <p>Level: ${cultivator.level}</p>
             <p>Efficiency: ${cultivator.efficiency.toFixed(1)}x</p>
@@ -46,10 +46,20 @@ function renderCultivators() {
     `).join('');
 }
 
+function getCultivatorClass(cultivator) {
+    switch(cultivator.id) {
+        case 1: return 'novice';
+        case 2: return 'skilled';
+        case 3: return 'master';
+        default: return '';
+    }
+}
+
 // Setup tea garden
 function setupTeaGarden() {
     const garden = document.getElementById('tea-garden');
-    for (let i = 0; i < 12; i++) {
+    garden.innerHTML = ''; // Clear existing plants
+    for (let i = 0; i < 9; i++) {
         const plant = createTeaPlant();
         gameState.plants.push(plant);
         garden.appendChild(plant.element);
@@ -65,101 +75,105 @@ function createTeaPlant() {
         element,
         growthStage: 0,
         maxGrowthStage: 5,
-        leaves: [],
+        cats: [],
         cultivatorId: Math.floor(Math.random() * 3) + 1
     };
 
     element.addEventListener('click', () => harvestPlant(plant));
     
-    // Add random number of leaves (3-7)
-    const numLeaves = Math.floor(Math.random() * 5) + 3;
-    for (let i = 0; i < numLeaves; i++) {
-        addLeafToPlant(plant);
+    // Add random number of cat-leaves (2-4)
+    const numCats = Math.floor(Math.random() * 3) + 2;
+    for (let i = 0; i < numCats; i++) {
+        addCatToPlant(plant);
     }
 
     return plant;
 }
 
-// Add a leaf to a plant
-function addLeafToPlant(plant) {
-    const leaf = document.createElement('div');
-    leaf.className = 'tea-leaf';
+// Add a cat to a plant
+function addCatToPlant(plant) {
+    const catLeaf = document.createElement('div');
+    catLeaf.className = 'cat-leaf';
     
     // Random position within the plant
-    const top = Math.random() * 70 + 10;
-    const left = Math.random() * 70 + 10;
-    const rotation = Math.random() * 360;
+    const top = Math.random() * 50 + 10;
+    const left = Math.random() * 60 + 20;
     
-    leaf.style.top = `${top}%`;
-    leaf.style.left = `${left}%`;
-    leaf.style.transform = `rotate(${rotation}deg)`;
+    catLeaf.style.top = `${top}%`;
+    catLeaf.style.left = `${left}%`;
     
-    plant.element.appendChild(leaf);
-    plant.leaves.push({
-        element: leaf,
+    const rarity = determineRarity();
+    catLeaf.classList.add(rarity.toLowerCase());
+    
+    plant.element.appendChild(catLeaf);
+    plant.cats.push({
+        element: catLeaf,
         growthProgress: 0,
-        isReady: false
+        isReady: false,
+        rarity: rarity,
+        breed: getRandomBreed(rarity)
     });
 }
 
 // Harvest a plant
 function harvestPlant(plant) {
-    const readyLeaves = plant.leaves.filter(leaf => leaf.isReady);
-    if (readyLeaves.length > 0) {
+    const readyCats = plant.cats.filter(cat => cat.isReady);
+    if (readyCats.length > 0) {
         const cultivator = gameState.cultivators.find(c => c.id === plant.cultivatorId);
-        const teaAmount = Math.ceil(readyLeaves.length * cultivator.efficiency);
         
-        // Add tea to inventory
-        gameState.teaInventory.leaves = (gameState.teaInventory.leaves || 0) + teaAmount;
-        
-        // Remove harvested leaves
-        readyLeaves.forEach(leaf => {
-            leaf.element.remove();
-            plant.leaves = plant.leaves.filter(l => l !== leaf);
+        // Add cats to collection
+        readyCats.forEach(cat => {
+            gameState.cats.push({
+                id: Date.now() + Math.random(),
+                breed: cat.breed,
+                rarity: cat.rarity
+            });
+            
+            // Add tea leaves based on cat rarity
+            const teaBonus = getTeaBonus(cat.rarity);
+            gameState.teaInventory.leaves = (gameState.teaInventory.leaves || 0) + 
+                Math.ceil(teaBonus * cultivator.efficiency);
         });
         
-        // Add new leaves
-        for (let i = 0; i < readyLeaves.length; i++) {
-            addLeafToPlant(plant);
+        // Remove harvested cats
+        readyCats.forEach(cat => {
+            cat.element.remove();
+            plant.cats = plant.cats.filter(c => c !== cat);
+        });
+        
+        // Add new cats
+        for (let i = 0; i < readyCats.length; i++) {
+            addCatToPlant(plant);
         }
         
+        updateCatDisplay();
         updateInventoryDisplay();
-        maybeSpawnCat();
     }
 }
 
-// Update leaves growth
-function updateLeaves() {
+function getTeaBonus(rarity) {
+    switch(rarity) {
+        case 'Legendary': return 10;
+        case 'Epic': return 5;
+        case 'Rare': return 3;
+        default: return 1;
+    }
+}
+
+// Update cats growth
+function updateGrowth() {
     gameState.plants.forEach(plant => {
         const cultivator = gameState.cultivators.find(c => c.id === plant.cultivatorId);
-        plant.leaves.forEach(leaf => {
-            if (!leaf.isReady) {
-                leaf.growthProgress += 0.1 * cultivator.efficiency;
-                if (leaf.growthProgress >= 100) {
-                    leaf.isReady = true;
-                    leaf.element.classList.add('ready');
+        plant.cats.forEach(cat => {
+            if (!cat.isReady) {
+                cat.growthProgress += 0.05 * cultivator.efficiency; // Slower growth rate
+                if (cat.growthProgress >= 100) {
+                    cat.isReady = true;
+                    cat.element.classList.add('ready');
                 }
             }
         });
     });
-}
-
-// Maybe spawn a cat when harvesting
-function maybeSpawnCat() {
-    if (Math.random() < 0.1) { // 10% chance to spawn a cat
-        const rarity = determineRarity();
-        const breed = getRandomBreed(rarity);
-        const cat = {
-            id: Date.now(),
-            breed,
-            rarity
-        };
-        gameState.cats.push(cat);
-        updateCatDisplay();
-        
-        // Show notification
-        alert(`You found a ${rarity} ${breed} cat!`);
-    }
 }
 
 // Determine cat rarity
@@ -185,7 +199,7 @@ function updateCatDisplay() {
     catGrid.innerHTML = gameState.cats.map(cat => `
         <div class="cat-card">
             <h4>${cat.breed}</h4>
-            <div class="cat-rarity">${cat.rarity}</div>
+            <div class="cat-rarity ${cat.rarity.toLowerCase()}">${cat.rarity}</div>
         </div>
     `).join('');
 }
@@ -220,20 +234,27 @@ function setupEventListeners() {
 
 // Save and load game state
 function saveGameState() {
-    localStorage.setItem('teaSimSave', JSON.stringify(gameState));
+    localStorage.setItem('teaSimSave', JSON.stringify({
+        cats: gameState.cats,
+        teaInventory: gameState.teaInventory,
+        cultivators: gameState.cultivators
+    }));
 }
 
 function loadGameState() {
     const savedState = localStorage.getItem('teaSimSave');
     if (savedState) {
-        Object.assign(gameState, JSON.parse(savedState));
+        const parsed = JSON.parse(savedState);
+        gameState.cats = parsed.cats || [];
+        gameState.teaInventory = parsed.teaInventory || {};
+        gameState.cultivators = parsed.cultivators || gameState.cultivators;
         updateCatDisplay();
         updateInventoryDisplay();
     }
 }
 
 // Start game loop
-setInterval(updateLeaves, 1000);
+setInterval(updateGrowth, 1000);
 setInterval(saveGameState, 30000);
 
 // Initialize the game
