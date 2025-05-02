@@ -34,13 +34,17 @@ const CAT_CONFIG = {
     }
 };
 
-// Load assets
-loadSprite("stem", "stem.png");
-loadSprite("pot", "pot.png");
-loadSprite("cat-common", "cat-common.png");
-loadSprite("cat-rare", "cat-rare.png");
-loadSprite("cat-epic", "cat-epic.png");
-loadSprite("cat-legendary", "cat-legendary.png");
+// Game sprites (using emojis)
+const SPRITES = {
+    stem: "🌱",
+    pot: "🪴",
+    cats: {
+        common: "😺",
+        rare: "😸",
+        epic: "😻",
+        legendary: "🐱"
+    }
+};
 
 // Helper functions
 function getRandomRarity() {
@@ -97,7 +101,7 @@ scene("game", () => {
         const area = add([
             rect(cultivatorWidth - 20, height()),
             pos(index * cultivatorWidth + 10, 0),
-            color(rgba(0, 0, 0, 0.1)),
+            color(Color.fromRgba(0, 0, 0, 0.1)),
             area(),
             "cultivator-area",
             { cultivator }
@@ -116,18 +120,16 @@ scene("game", () => {
     function createTeaPlant(x, y, cultivator) {
         // Create stem
         const stem = add([
-            rect(8, 100),
-            pos(x, y),
-            color(rgb(101, 67, 33)),
+            text(SPRITES.stem, { size: 32 }),
+            pos(x, y - 20),
             anchor("center"),
             "plant-stem"
         ]);
 
         // Create pot
         const pot = add([
-            rect(40, 30),
-            pos(x, y + 50),
-            color(rgb(139, 69, 19)),
+            text(SPRITES.pot, { size: 40 }),
+            pos(x, y + 30),
             anchor("center"),
             "plant-pot"
         ]);
@@ -194,32 +196,16 @@ scene("game", () => {
                 anchor("center")
             ]);
 
-            // Add cat background circle
-            catGroup.add([
-                circle(12),
-                color(CAT_CONFIG.rarities[rarity].color),
-                anchor("center")
-            ]);
-
             // Add cat emoji
-            const catEmoji = catGroup.add([
-                text(CAT_CONFIG.rarities[rarity].symbol, { size: 20 }),
+            catGroup.add([
+                text(SPRITES.cats[rarity], { size: 24 }),
                 anchor("center"),
-                pos(0, -2)
+                pos(0, 0)
             ]);
 
-            spot.cat = catGroup;
-            catGroup.add([
-                area(),
-                "cat",
-                {
-                    rarity,
-                    breed,
-                    spot,
-                    growthProgress: 0,
-                    ready: false
-                }
-            ]);
+            // Add to game state
+            GAME_STATE.cats.push({ breed, rarity });
+            updateCatList();
         }
     });
 

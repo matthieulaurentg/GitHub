@@ -1,0 +1,17 @@
+{
+  "name": "game-tester",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Test script for checking JavaScript errors in games",
+  "main": "test-game-playwright.js",
+  "scripts": {
+    "test:jsdom": "node test-game-jsdom.js",
+    "test:playwright": "node test-game-playwright.js",
+    "test": "node test-game-playwright.js"
+  },
+  "dependencies": {
+    "jsdom": "^22.1.0",
+    "node-fetch": "^3.3.2",
+    "playwright": "^1.42.1"
+  }
+} 
