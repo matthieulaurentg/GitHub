@@ -1,5 +1,6 @@
-import { TEA_CONFIG, GAME_STATE } from '../config/gameConfig.mjs';
+                       import { TEA_CONFIG, GAME_STATE } from '../config/gameConfig.mjs';
 import { createPlant } from '../objects/plant.mjs';
+import { createMagicalTree } from '../objects/tree.mjs';
 
 function createAntHill(scene, x, z) {
     const geometry = new THREE.ConeGeometry(0.3, 0.4, 8);
@@ -103,11 +104,18 @@ export function setupGarden(scene) {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Create plants in a grid
+    // Create magical tree in the center
+    createMagicalTree(scene, new THREE.Vector3(0, 0, 0));
+
+    // Create plants in a grid, avoiding the center
     for (let row = 0; row < 2; row++) {
         for (let col = 0; col < 3; col++) {
             const x = (col - 1) * spacing;
             const z = (row - 0.5) * spacing;
+            
+            // Skip the center position where the tree is
+            if (Math.abs(x) < 1 && Math.abs(z) < 1) continue;
+            
             createPlant(scene, x, z);
         }
     }

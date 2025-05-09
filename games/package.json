@@ -12,5 +12,8 @@
     "jsdom": "^22.1.0",
     "node-fetch": "^3.3.2",
     "playwright": "^1.42.1"
+  },
+  "devDependencies": {
+    "vite": "^6.3.4"
   }
-} 
+}
