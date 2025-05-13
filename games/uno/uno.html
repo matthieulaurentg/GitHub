@@ -91,6 +91,12 @@
             transform: translate(-50%, -55%);
             box-shadow: 0 8px 15px rgba(0,0,0,0.4);
         }
+        
+        /* AI character skins */
+        .ai-emoji {
+            font-size: 24px;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -100,18 +106,24 @@
         <div id="instructions">
             <h3>How to Play:</h3>
             <p>Click and drag a card from your hand to the discard pile to play it. Click the "Draw Card" button to draw a card.</p>
+            <p>Each AI has a unique theme. Take turns clockwise around the table.</p>
         </div>
-        
-        <div id="status-message">Your turn! Play a card or draw from the deck.</div>
         
         <div id="game-table">
             <div id="discard-pile"></div>
             <button id="draw-card">Draw Card</button>
+            
+            <div id="ai-players">
+                <!-- AI players will be added here via JavaScript -->
+            </div>
+            
+            <div class="player-area">
+                <div class="player-name">Your Hand</div>
+                <div id="player-hand"></div>
+            </div>
         </div>
         
-        <div id="player-hand"></div>
-        
-        <div id="ai-players"></div>
+        <div id="status-message">Your turn! Play a card or draw from the deck.</div>
     </div>
     <script src="uno.js"></script>
 </body>
