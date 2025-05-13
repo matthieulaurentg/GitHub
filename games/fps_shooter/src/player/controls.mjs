@@ -21,7 +21,11 @@ const direction = new THREE.Vector3();
 export function initControls() {
     // Initialize pointer lock controls
     controls = new PointerLockControls(camera, document.body);
-    scene.add(controls.getObject());
+    
+    // Ensure the controls object is added to the scene
+    if (controls.getObject()) {
+        scene.add(controls.getObject());
+    }
     
     // Set up event listeners
     setupEventListeners();
@@ -92,9 +96,9 @@ function setupEventListeners() {
                 moveRight = true;
                 break;
                 
-            // Jump
+            // Jump - disabled for now to prevent falling through map
             case 'Space':
-                isJumping = true;
+                // isJumping = true;
                 break;
                 
             // Sprint
@@ -107,8 +111,8 @@ function setupEventListeners() {
             // Reload
             case 'KeyR':
                 isReloading = true;
-                // Trigger reload action
-                if (typeof reloadWeapon === 'function') reloadWeapon();
+                // Trigger reload action from weapon.mjs
+                if (typeof reload === 'function') reload();
                 break;
                 
             // Pause
