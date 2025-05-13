@@ -6,11 +6,6 @@
     <title>Uno</title>
     <link rel="stylesheet" href="uno.css">
     <style>
-        #instructions {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
         /* Game background */
         body {
             background: linear-gradient(135deg, #1a2a3a, #0d1117);
@@ -101,13 +96,13 @@
 </head>
 <body>
     <div id="game">
-        <h1 class="game-title">UNO</h1>
-        
-        <div id="instructions">
-            <p>Drag cards to play. Each AI has a unique personality. Click "Draw Card" when needed.</p>
-        </div>
-        
         <div id="game-table">
+            <h1 class="game-title">UNO</h1>
+            
+            <div id="instructions">
+                <p>Drag cards to play. Each AI has a unique personality. Click "Draw Card" when needed.</p>
+            </div>
+            
             <div id="discard-pile"></div>
             <button id="draw-card">Draw Card</button>
             
@@ -119,9 +114,9 @@
                 <div class="player-name">Your Hand</div>
                 <div id="player-hand"></div>
             </div>
+            
+            <div id="status-message">Your turn! Play a card or draw from the deck.</div>
         </div>
-        
-        <div id="status-message">Your turn! Play a card or draw from the deck.</div>
     </div>
     <script src="uno.js"></script>
 </body>

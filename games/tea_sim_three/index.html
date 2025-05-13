@@ -150,10 +150,14 @@
             growthSpots: []
         };
         
+        // Variable to track if the game has loaded
+        window.gameLoaded = false;
+        
         // Show fallback experience if main script fails
         setTimeout(() => {
-            // Check if main game loaded successfully
+            // Check if the game has been loaded
             if (!window.gameLoaded) {
+                console.log("Main game didn't load, starting fallback experience");
                 // Show simplified garden
                 document.getElementById('loading-screen').style.display = 'none';
                 setupFallbackGame();
@@ -162,6 +166,7 @@
         
         function setupFallbackGame() {
             try {
+                console.log("Setting up fallback game");
                 const scene = new THREE.Scene();
                 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
                 
@@ -221,22 +226,25 @@
                 }
                 
                 // Add plant button functionality
-                document.getElementById('plant-button').addEventListener('click', () => {
-                    if (GAME_STATE.money >= 10) {
-                        // Find empty spot
-                        const emptySpots = GAME_STATE.growthSpots.filter(spot => !spot.growing);
-                        if (emptySpots.length > 0) {
-                            const spot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
-                            plantTea(spot);
-                            GAME_STATE.money -= 10;
-                            updateUI();
+                const plantButton = document.getElementById('plant-button');
+                if (plantButton) {
+                    plantButton.addEventListener('click', () => {
+                        if (GAME_STATE.money >= 10) {
+                            // Find empty spot
+                            const emptySpots = GAME_STATE.growthSpots.filter(spot => !spot.growing);
+                            if (emptySpots.length > 0) {
+                                const spot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
+                                plantTea(spot);
+                                GAME_STATE.money -= 10;
+                                updateUI();
+                            } else {
+                                alert("No empty spots available. Harvest some tea first!");
+                            }
                         } else {
-                            alert("No empty spots available. Harvest some tea first!");
+                            alert("Not enough money!");
                         }
-                    } else {
-                        alert("Not enough money!");
-                    }
-                });
+                    });
+                }
                 
                 function plantTea(spot) {
                     spot.growing = true;
@@ -332,7 +340,7 @@
                     raycaster.setFromCamera(mouse, camera);
                     
                     // Find intersections
-                    const intersects = raycaster.intersectObjects(scene.children);
+                    const intersects = raycaster.intersectObjects(scene.children, true);
                     
                     if (intersects.length > 0) {
                         const object = intersects[0].object;
@@ -347,8 +355,8 @@
                 
                 function harvestTea(spot) {
                     // Remove the tea from the scene
-                    scene.remove(spot.mesh);
-                    scene.remove(spot.teaLeaf);
+                    if (spot.mesh) scene.remove(spot.mesh);
+                    if (spot.teaLeaf) scene.remove(spot.teaLeaf);
                     
                     // Update inventory based on tea type
                     if (spot.teaType === 'green') {
@@ -396,9 +404,24 @@
                 
                 animate();
                 window.gameLoaded = true;
+                console.log("Fallback game successfully initialized");
                 
                 // Initial UI update
                 updateUI();
+                
+                // Make a few sample plants
+                setTimeout(() => {
+                    const randomSpot1 = GAME_STATE.growthSpots[Math.floor(Math.random() * GAME_STATE.growthSpots.length)];
+                    const randomSpot2 = GAME_STATE.growthSpots[Math.floor(Math.random() * GAME_STATE.growthSpots.length)];
+                    if (randomSpot1 && !randomSpot1.growing) {
+                        plantTea(randomSpot1);
+                        randomSpot1.instantGrow();
+                    }
+                    if (randomSpot2 && !randomSpot2.growing) {
+                        plantTea(randomSpot2);
+                    }
+                }, 500);
+                
             } catch (error) {
                 console.error("Error setting up fallback game:", error);
                 document.getElementById('game-container').style.display = 'none';
@@ -407,9 +430,36 @@
                     "There was an error loading the tea garden: " + error.message;
             }
         }
+        
+        // Safety mechanism to ensure game always appears
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (document.getElementById('loading-screen').style.display !== 'none') {
+                    console.warn("Loading screen still showing after 5 seconds, forcing fallback mode");
+                    document.getElementById('loading-screen').style.display = 'none';
+                    if (!window.gameLoaded) {
+                        setupFallbackGame();
+                    }
+                }
+            }, 5000);
+        });
     </script>
     
     <!-- Load the main game code -->
-    <script type="module" src="src/main.mjs"></script>
+    <script type="module">
+        // Add a safety timeout for module loading
+        try {
+            import('./src/main.mjs')
+                .then(() => {
+                    console.log("Main game module loaded successfully");
+                })
+                .catch(error => {
+                    console.error("Error loading main game module:", error);
+                    // If the module fails to load, the fallback will activate
+                });
+        } catch (error) {
+            console.error("Import error:", error);
+        }
+    </script>
 </body>
 </html> 
