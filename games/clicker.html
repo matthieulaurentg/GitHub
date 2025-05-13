@@ -28,6 +28,7 @@
             font-size: 36px;
             color: white;
             z-index: 2;
+            text-shadow: 0 0 5px #000;
         }
 
         #upgradeSidebar {
@@ -62,6 +63,12 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        
+        #upgradeSidebar button:hover {
+            transform: scale(1.03);
+            background-color: #3e8e41;
         }
 
         #toggleSidebarButton {
@@ -76,11 +83,21 @@
             border-radius: 5px;
             z-index: 4;
         }
+        
+        .ambient-cat {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            z-index: 2;
+            pointer-events: none;
+            border-radius: 50%;
+            object-fit: cover;
+        }
     </style>
 </head>
 
 <body>
-    <img id="clickButton" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM0MjQyNDIiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM4ODgiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjODg4Ii8+PHBhdGggZmlsbD0iIzg4OCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMjIyIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=" alt="Click Me!">
+    <img id="clickButton" src="https://cataas.com/cat/gif" alt="Click Me!">
     <div id="score">Score: 0</div>
 
     <button id="toggleSidebarButton">Upgrades</button>
@@ -115,13 +132,65 @@
         let upgrade4Cost = 250;
         let catTreeMultiplier = 1;
         let upgrade5Cost = 500;
+        
+        // Use both real cat images and fallback SVGs
         const catImages = [
-            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM0MjQyNDIiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM4ODgiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjODg4Ii8+PHBhdGggZmlsbD0iIzg4OCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMjIyIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=",
-            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM2MjQxMDAiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM5OTY2MDAiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjOTk2NjAwIi8+PHBhdGggZmlsbD0iIzk5NjYwMCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=",
-            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM3Nzc3NzciIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiNjY2MiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjY2NjIi8+PHBhdGggZmlsbD0iI2NjYyIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMzMzIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=",
-            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM0NDQ0NjYiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM5OTk5YWEiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjOTk5OWFhIi8+PHBhdGggZmlsbD0iIzk5OTlhYSIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMjIyMjMzIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4="
+            "https://cataas.com/cat?t=" + new Date().getTime(),
+            "https://cataas.com/cat/cute?t=" + new Date().getTime(),
+            "https://cataas.com/cat/says/hello?t=" + new Date().getTime(),
+            "https://cataas.com/cat/gif?t=" + new Date().getTime()
         ];
+        
+        const fallbackCatImages = [
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM0MjQyNDIiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM4ODgiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjODg4Ii8+PHBhdGggZmlsbD0iIzg4OCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMjIyIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=",
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM2MjQxMDAiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM5OTY2MDAiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjOTk2NjAwIi8+PHBhdGggZmlsbD0iIzk5NjYwMCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4="
+        ];
+        
         let currentCatIndex = 0;
+        let ambientCats = [];
+
+        // Function to get a random cat image
+        function getRandomCatImage() {
+            // Try to use a real cat image, but fall back to SVG if needed
+            const randomImage = Math.random() > 0.5 ? 
+                catImages[Math.floor(Math.random() * catImages.length)] : 
+                fallbackCatImages[Math.floor(Math.random() * fallbackCatImages.length)];
+            return randomImage;
+        }
+
+        // Function to add ambient cats to the screen
+        function addAmbientCat() {
+            if (clicksPerSecond <= 0) return;
+            
+            const cat = document.createElement('img');
+            cat.className = 'ambient-cat';
+            cat.src = getRandomCatImage();
+            
+            // Random position
+            const x = Math.random() * window.innerWidth * 0.8;
+            const y = Math.random() * window.innerHeight * 0.8;
+            cat.style.left = x + 'px';
+            cat.style.top = y + 'px';
+            
+            // Add to DOM and to our array
+            document.body.appendChild(cat);
+            ambientCats.push(cat);
+            
+            // Remove old cats if we have too many
+            if (ambientCats.length > clicksPerSecond * 3) {
+                const oldCat = ambientCats.shift();
+                oldCat.remove();
+            }
+            
+            // Add animation
+            setTimeout(() => {
+                const newX = x + (Math.random() * 200 - 100);
+                const newY = y + (Math.random() * 200 - 100);
+                cat.style.transition = 'all 5s ease-in-out';
+                cat.style.left = newX + 'px';
+                cat.style.top = newY + 'px';
+            }, 100);
+        }
 
         clickButton.addEventListener('click', (e) => {
             score += clickValue * scoreMultiplier * catTreeMultiplier + catnipBonus;
@@ -153,6 +222,28 @@
                 upgrade1Cost *= 2;
                 scoreDisplay.textContent = `Score: ${score}`;
                 upgrade1Button.textContent = `Increase Meow Volume (Cost: ${upgrade1Cost})`;
+                
+                // Visual effect for upgrade
+                const meow = document.createElement('div');
+                meow.textContent = '🔊 MEOW!';
+                meow.style.position = 'fixed';
+                meow.style.left = '50%';
+                meow.style.top = '50%';
+                meow.style.transform = 'translate(-50%, -50%)';
+                meow.style.fontSize = '80px';
+                meow.style.fontWeight = 'bold';
+                meow.style.color = 'orange';
+                meow.style.textShadow = '0 0 10px white';
+                meow.style.pointerEvents = 'none';
+                meow.style.zIndex = 100;
+                meow.style.opacity = 1;
+                meow.style.transition = 'transform 1s, opacity 1s';
+                document.body.appendChild(meow);
+                setTimeout(() => {
+                    meow.style.transform = 'translate(-50%, -50%) scale(2)';
+                    meow.style.opacity = 0;
+                }, 50);
+                setTimeout(() => meow.remove(), 1100);
             } else {
                 alert('Not enough score!');
             }
@@ -165,6 +256,11 @@
                 upgrade2Cost *= 2;
                 scoreDisplay.textContent = `Score: ${score}`;
                 upgrade2Button.textContent = `Attract More Cats (Cost: ${upgrade2Cost})`;
+                
+                // Add more ambient cats immediately
+                for (let i = 0; i < 3; i++) {
+                    addAmbientCat();
+                }
             } else {
                 alert('Not enough score!');
             }
@@ -177,6 +273,28 @@
                 upgrade3Cost *= 2;
                 scoreDisplay.textContent = `Score: ${score}`;
                 upgrade3Button.textContent = `Score Multiplier (Cost: ${upgrade3Cost})`;
+                
+                // Visual effect
+                const multiplier = document.createElement('div');
+                multiplier.textContent = `x${scoreMultiplier}`;
+                multiplier.style.position = 'fixed';
+                multiplier.style.left = '50%';
+                multiplier.style.top = '40%';
+                multiplier.style.transform = 'translate(-50%, -50%)';
+                multiplier.style.fontSize = '100px';
+                multiplier.style.fontWeight = 'bold';
+                multiplier.style.color = 'gold';
+                multiplier.style.textShadow = '0 0 15px orange';
+                multiplier.style.pointerEvents = 'none';
+                multiplier.style.zIndex = 100;
+                multiplier.style.opacity = 1;
+                multiplier.style.transition = 'transform 1.5s, opacity 1.5s';
+                document.body.appendChild(multiplier);
+                setTimeout(() => {
+                    multiplier.style.transform = 'translate(-50%, -50%) scale(2.5)';
+                    multiplier.style.opacity = 0;
+                }, 50);
+                setTimeout(() => multiplier.remove(), 1600);
             } else {
                 alert('Not enough score!');
             }
@@ -189,6 +307,26 @@
                 upgrade4Cost *= 2;
                 scoreDisplay.textContent = `Score: ${score}`;
                 upgrade4Button.textContent = `Buy Catnip (Cost: ${upgrade4Cost})`;
+                
+                // Visual catnip effect
+                for (let i = 0; i < 20; i++) {
+                    const catnip = document.createElement('div');
+                    catnip.textContent = '🌿';
+                    catnip.style.position = 'fixed';
+                    catnip.style.left = (Math.random() * window.innerWidth) + 'px';
+                    catnip.style.top = (Math.random() * window.innerHeight) + 'px';
+                    catnip.style.fontSize = (20 + Math.random() * 10) + 'px';
+                    catnip.style.pointerEvents = 'none';
+                    catnip.style.zIndex = 5;
+                    catnip.style.opacity = 1;
+                    catnip.style.transition = 'transform 3s, opacity 3s';
+                    document.body.appendChild(catnip);
+                    setTimeout(() => {
+                        catnip.style.transform = `translateY(${Math.random() * 400 - 200}px) rotate(${Math.random() * 360}deg)`;
+                        catnip.style.opacity = 0;
+                    }, 50);
+                    setTimeout(() => catnip.remove(), 3100);
+                }
             } else {
                 alert('Not enough score!');
             }
@@ -201,20 +339,69 @@
                 upgrade5Cost *= 2;
                 scoreDisplay.textContent = `Score: ${score}`;
                 upgrade5Button.textContent = `Get a Cat Tree (Cost: ${upgrade5Cost})`;
+                
+                // Visual cat tree effect
+                const catTree = document.createElement('div');
+                catTree.textContent = '🌳';
+                catTree.style.position = 'fixed';
+                catTree.style.left = '50%';
+                catTree.style.bottom = '-100px';
+                catTree.style.transform = 'translateX(-50%)';
+                catTree.style.fontSize = '150px';
+                catTree.style.pointerEvents = 'none';
+                catTree.style.zIndex = 1;
+                catTree.style.transition = 'bottom 2s ease-out';
+                document.body.appendChild(catTree);
+                setTimeout(() => {
+                    catTree.style.bottom = '0px';
+                }, 50);
+                setTimeout(() => {
+                    catTree.style.transition = 'opacity 1s, transform 1s';
+                    catTree.style.opacity = 0;
+                    catTree.style.transform = 'translateX(-50%) scale(0.7)';
+                }, 2500);
+                setTimeout(() => catTree.remove(), 3500);
             } else {
                 alert('Not enough score!');
             }
         });
 
+        // Automatic score generation
         setInterval(() => {
-            score += clicksPerSecond * scoreMultiplier * catTreeMultiplier + catnipBonus;
-            scoreDisplay.textContent = `Score: ${score}`;
+            const autoScore = clicksPerSecond * scoreMultiplier * catTreeMultiplier + catnipBonus;
+            if (autoScore > 0) {
+                score += autoScore;
+                scoreDisplay.textContent = `Score: ${score}`;
+            }
         }, 1000);
 
+        // Add ambient cats at regular intervals based on clicksPerSecond
         setInterval(() => {
-            currentCatIndex = (currentCatIndex + 1) % catImages.length;
-            clickButton.src = catImages[currentCatIndex];
-        }, 2000);
+            if (clicksPerSecond > 0) {
+                addAmbientCat();
+            }
+        }, 3000);
+
+        // Try loading a new cat image periodically
+        setInterval(() => {
+            try {
+                const newImage = new Image();
+                newImage.onload = () => {
+                    clickButton.src = newImage.src;
+                };
+                newImage.onerror = () => {
+                    // If loading fails, use a fallback SVG cat
+                    clickButton.src = fallbackCatImages[Math.floor(Math.random() * fallbackCatImages.length)];
+                };
+                
+                // Try to load a new cat with a timestamp to avoid caching
+                newImage.src = catImages[currentCatIndex] + "&t=" + new Date().getTime();
+                currentCatIndex = (currentCatIndex + 1) % catImages.length;
+            } catch (e) {
+                // Fallback if there's an error
+                clickButton.src = fallbackCatImages[Math.floor(Math.random() * fallbackCatImages.length)];
+            }
+        }, 5000);
 
         toggleSidebarButton.addEventListener('click', () => {
             upgradeSidebar.classList.toggle('open');
