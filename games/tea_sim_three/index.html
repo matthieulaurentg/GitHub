@@ -11,20 +11,68 @@
             font-family: Arial, sans-serif;
             background: #1a1a1a;
             color: #ffffff;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
             height: 100vh;
         }
-        #game-container {
-            display: none;
+        
+        #ui-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 200px;
         }
+        
+        #inventory {
+            margin-top: 10px;
+        }
+        
+        #error-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        
         h1 {
             font-size: 28px;
             margin-bottom: 20px;
             color: #4CAF50;
         }
+        
         p {
             font-size: 18px;
             max-width: 600px;
@@ -32,6 +80,7 @@
             margin-bottom: 30px;
             line-height: 1.5;
         }
+        
         button {
             background-color: #4CAF50;
             color: white;
@@ -42,9 +91,11 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+        
         button:hover {
             background-color: #45a049;
         }
+        
         .emoji {
             font-size: 50px;
             margin-bottom: 20px;
@@ -52,10 +103,313 @@
     </style>
 </head>
 <body>
-    <div class="emoji">🍵</div>
-    <h1>Tea Garden Simulator (Three.js)</h1>
-    <p>Enjoy growing tea leaves and find special leaves to enhance your garden!</p>
-    <p>The 3D version is currently experiencing technical difficulties. We're working on a fix.</p>
-    <button onclick="window.history.back()">Return to Game Collection</button>
+    <div id="loading-screen">
+        <div class="emoji">🍵</div>
+        <h1>Tea Garden Simulator</h1>
+        <p>Loading your garden...</p>
+    </div>
+
+    <div id="error-container">
+        <div class="emoji">😢</div>
+        <h1>Oops! Something went wrong</h1>
+        <p id="error-message">There was an error loading the 3D garden. Your browser may not support WebGL or it might be disabled.</p>
+        <button onclick="window.history.back()">Return to Game Collection</button>
+    </div>
+
+    <div id="game-container">
+        <canvas id="game"></canvas>
+        <div id="ui-container">
+            <h3>Tea Garden</h3>
+            <button id="plant-button">Plant Tea (10 🪙)</button>
+            <div id="inventory">
+                <div>Money: <span id="money">100</span> 🪙</div>
+                <div>Green Tea: <span id="green-tea">0</span> 🍃</div>
+                <div>Black Tea: <span id="black-tea">0</span> 🌿</div>
+                <div>Rare Tea: <span id="rare-tea">0</span> ✨</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Three.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Simple fallback script to handle basic interaction -->
+    <script>
+        // Set global THREE for modules to use
+        window.THREE = THREE;
+        
+        // Simple game state
+        const GAME_STATE = {
+            money: 100,
+            inventory: {
+                greenTea: 0,
+                blackTea: 0,
+                rareTea: 0
+            },
+            growthSpots: []
+        };
+        
+        // Show fallback experience if main script fails
+        setTimeout(() => {
+            // Check if main game loaded successfully
+            if (!window.gameLoaded) {
+                // Show simplified garden
+                document.getElementById('loading-screen').style.display = 'none';
+                setupFallbackGame();
+            }
+        }, 3000);
+        
+        function setupFallbackGame() {
+            try {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                
+                const renderer = new THREE.WebGLRenderer({ 
+                    canvas: document.querySelector("#game"),
+                    antialias: true
+                });
+                
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x87cefa); // Sky blue background
+                
+                // Create a ground plane
+                const groundGeometry = new THREE.PlaneGeometry(20, 20);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x55aa55 });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -0.5;
+                scene.add(ground);
+                
+                // Add some lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(5, 10, 5);
+                scene.add(directionalLight);
+                
+                // Add camera controls
+                const controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                
+                // Set camera position
+                camera.position.set(0, 5, 10);
+                camera.lookAt(0, 0, 0);
+                
+                // Create plant spots
+                for (let x = -8; x <= 8; x += 4) {
+                    for (let z = -8; z <= 8; z += 4) {
+                        const spotGeometry = new THREE.CircleGeometry(1, 16);
+                        const spotMaterial = new THREE.MeshLambertMaterial({ color: 0x3d2817 });
+                        const spot = new THREE.Mesh(spotGeometry, spotMaterial);
+                        spot.rotation.x = -Math.PI / 2;
+                        spot.position.set(x, -0.49, z);
+                        scene.add(spot);
+                        
+                        // Create object for game state
+                        GAME_STATE.growthSpots.push({
+                            position: { x, y: -0.49, z },
+                            growing: false,
+                            growthStage: 0,
+                            teaType: null,
+                            mesh: null,
+                            instantGrow: null
+                        });
+                    }
+                }
+                
+                // Add plant button functionality
+                document.getElementById('plant-button').addEventListener('click', () => {
+                    if (GAME_STATE.money >= 10) {
+                        // Find empty spot
+                        const emptySpots = GAME_STATE.growthSpots.filter(spot => !spot.growing);
+                        if (emptySpots.length > 0) {
+                            const spot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
+                            plantTea(spot);
+                            GAME_STATE.money -= 10;
+                            updateUI();
+                        } else {
+                            alert("No empty spots available. Harvest some tea first!");
+                        }
+                    } else {
+                        alert("Not enough money!");
+                    }
+                });
+                
+                function plantTea(spot) {
+                    spot.growing = true;
+                    spot.growthStage = 0;
+                    
+                    // Determine tea type (rare tea has a 10% chance)
+                    const teaTypes = ['green', 'black', 'rare'];
+                    const weights = [0.45, 0.45, 0.1]; // 45%, 45%, 10%
+                    const random = Math.random();
+                    let cumulativeWeight = 0;
+                    let teaType;
+                    
+                    for (let i = 0; i < weights.length; i++) {
+                        cumulativeWeight += weights[i];
+                        if (random <= cumulativeWeight) {
+                            teaType = teaTypes[i];
+                            break;
+                        }
+                    }
+                    
+                    spot.teaType = teaType;
+                    
+                    // Create growing visualization
+                    const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.1, 8);
+                    const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x7cfc00 });
+                    const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+                    stem.position.set(spot.position.x, spot.position.y + 0.05, spot.position.z);
+                    scene.add(stem);
+                    
+                    spot.mesh = stem;
+                    
+                    // Set up growth phases
+                    let growthTimer = setInterval(() => {
+                        spot.growthStage++;
+                        
+                        // Adjust visualization based on growth stage
+                        if (spot.growthStage <= 5) {
+                            stem.scale.y = spot.growthStage * 0.2 + 0.1;
+                            stem.position.y = spot.position.y + (stem.scale.y * 0.05);
+                        }
+                        
+                        // Plant is ready for harvest
+                        if (spot.growthStage >= 5) {
+                            clearInterval(growthTimer);
+                            createTeaLeaves(spot);
+                        }
+                    }, 2000);
+                    
+                    // Add instant grow function for testing/cheats
+                    spot.instantGrow = () => {
+                        clearInterval(growthTimer);
+                        spot.growthStage = 5;
+                        stem.scale.y = 1.1;
+                        stem.position.y = spot.position.y + (stem.scale.y * 0.05);
+                        createTeaLeaves(spot);
+                    };
+                }
+                
+                function createTeaLeaves(spot) {
+                    // Create tea leaves on top of stem
+                    const leafColor = spot.teaType === 'green' ? 0x32cd32 : 
+                                     (spot.teaType === 'black' ? 0x556b2f : 0xffd700);
+                    
+                    const leafGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+                    const leafMaterial = new THREE.MeshLambertMaterial({ color: leafColor });
+                    const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+                    
+                    leaf.position.set(
+                        spot.position.x, 
+                        spot.position.y + (spot.mesh.scale.y * 0.1) + 0.3, 
+                        spot.position.z
+                    );
+                    
+                    scene.add(leaf);
+                    
+                    // Make leaves clickable for harvest
+                    leaf.userData = { isTeaLeaf: true, spot: spot };
+                    
+                    // Update the spot's mesh to include the leaf
+                    spot.teaLeaf = leaf;
+                }
+                
+                // Add click handler for harvesting
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2();
+                
+                window.addEventListener('click', (event) => {
+                    // Calculate mouse position
+                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                    
+                    // Set raycaster 
+                    raycaster.setFromCamera(mouse, camera);
+                    
+                    // Find intersections
+                    const intersects = raycaster.intersectObjects(scene.children);
+                    
+                    if (intersects.length > 0) {
+                        const object = intersects[0].object;
+                        
+                        // Check if it's a tea leaf that can be harvested
+                        if (object.userData && object.userData.isTeaLeaf) {
+                            const spot = object.userData.spot;
+                            harvestTea(spot);
+                        }
+                    }
+                });
+                
+                function harvestTea(spot) {
+                    // Remove the tea from the scene
+                    scene.remove(spot.mesh);
+                    scene.remove(spot.teaLeaf);
+                    
+                    // Update inventory based on tea type
+                    if (spot.teaType === 'green') {
+                        GAME_STATE.inventory.greenTea++;
+                        GAME_STATE.money += 15; // Profit of 5
+                    } else if (spot.teaType === 'black') {
+                        GAME_STATE.inventory.blackTea++;
+                        GAME_STATE.money += 20; // Profit of 10
+                    } else if (spot.teaType === 'rare') {
+                        GAME_STATE.inventory.rareTea++;
+                        GAME_STATE.money += 50; // Profit of 40
+                    }
+                    
+                    // Reset the spot
+                    spot.growing = false;
+                    spot.growthStage = 0;
+                    spot.teaType = null;
+                    spot.mesh = null;
+                    spot.teaLeaf = null;
+                    
+                    // Update UI
+                    updateUI();
+                }
+                
+                function updateUI() {
+                    document.getElementById('money').textContent = GAME_STATE.money;
+                    document.getElementById('green-tea').textContent = GAME_STATE.inventory.greenTea;
+                    document.getElementById('black-tea').textContent = GAME_STATE.inventory.blackTea;
+                    document.getElementById('rare-tea').textContent = GAME_STATE.inventory.rareTea;
+                }
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+                
+                // Animation loop
+                function animate() {
+                    requestAnimationFrame(animate);
+                    controls.update();
+                    renderer.render(scene, camera);
+                }
+                
+                animate();
+                window.gameLoaded = true;
+                
+                // Initial UI update
+                updateUI();
+            } catch (error) {
+                console.error("Error setting up fallback game:", error);
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('error-container').style.display = 'flex';
+                document.getElementById('error-message').textContent = 
+                    "There was an error loading the tea garden: " + error.message;
+            }
+        }
+    </script>
+    
+    <!-- Load the main game code -->
+    <script type="module" src="src/main.mjs"></script>
 </body>
 </html> 
