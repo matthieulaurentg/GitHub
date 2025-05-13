@@ -10,22 +10,108 @@
             margin-bottom: 20px;
             text-align: center;
         }
+        
+        /* Game background */
+        body {
+            background: linear-gradient(135deg, #1a2a3a, #0d1117);
+        }
+        
+        /* Add card animations */
+        @keyframes cardDeal {
+            from { 
+                transform: translateY(-300px) scale(0.5); 
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0) scale(1); 
+                opacity: 1;
+            }
+        }
+        
+        .card {
+            animation: cardDeal 0.5s ease-out;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        /* Enhanced game title */
+        .game-title {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+            text-shadow: 0 0 10px #ff6b6b, 0 0 20px #1e90ff, 0 0 30px #4CAF50, 0 0 40px #ffeb3b;
+            letter-spacing: 5px;
+            font-weight: bold;
+        }
+        
+        /* Status message */
+        #status-message {
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 5px;
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        
+        /* Game table */
+        #game-table {
+            background: rgba(26, 42, 58, 0.7);
+            border-radius: 50%;
+            width: 500px;
+            height: 500px;
+            margin: 0 auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 5px solid rgba(255,255,255,0.1);
+        }
+        
+        #discard-pile {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+        }
+        
+        #draw-card {
+            position: absolute;
+            top: 50%;
+            left: 30%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        #draw-card:hover {
+            transform: translate(-50%, -55%);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body>
     <div id="game">
+        <h1 class="game-title">UNO</h1>
+        
         <div id="instructions">
             <h3>How to Play:</h3>
             <p>Click and drag a card from your hand to the discard pile to play it. Click the "Draw Card" button to draw a card.</p>
         </div>
-        <div id="player-hand"></div>
-        <div id="discard-pile"></div>
-        <button id="draw-card">Draw Card</button>
-        <div id="ai-players">
-            <div id="ai-1">AI 1</div>
-            <div id="ai-2">AI 2</div>
-            <div id="ai-3">AI 3</div>
+        
+        <div id="status-message">Your turn! Play a card or draw from the deck.</div>
+        
+        <div id="game-table">
+            <div id="discard-pile"></div>
+            <button id="draw-card">Draw Card</button>
         </div>
+        
+        <div id="player-hand"></div>
+        
+        <div id="ai-players"></div>
     </div>
     <script src="uno.js"></script>
 </body>
