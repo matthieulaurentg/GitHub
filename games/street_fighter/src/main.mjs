@@ -56,7 +56,7 @@ function startGame(isHostPlayer) {
 }
 
 function renderLobbies(lobbies) {
-    if (!lobbies.length) {
+    if (!lobbies || !lobbies.length) {
         lobbiesDiv.innerHTML = '<span style="opacity:0.7;">No public lobbies</span>';
         return;
     }
@@ -103,6 +103,19 @@ setupNetworking({
         showStatus('Opponent left.');
         showLobby();
         hideStartButton();
+        
+        // If game was in progress, reset it
+        if (gameStarted) {
+            gameStarted = false;
+            destroyAll();
+            kaboom({
+                global: false,
+                canvas: document.getElementById('game-canvas'),
+                width: 800,
+                height: 400,
+                background: [24, 24, 24],
+            });
+        }
     },
     onLobbyList: (lobbies) => {
         renderLobbies(lobbies);
@@ -126,5 +139,4 @@ joinBtn.onclick = () => {
 
 startBtn.onclick = () => {
     window.network.sendStartGame();
-    hideStartButton();
 }; 

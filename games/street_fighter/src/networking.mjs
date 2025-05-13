@@ -1,4 +1,5 @@
-const WS_URL = 'wss://ws.postman-echo.com/raw'; // Demo echo server
+// Replace the demo echo server with our Cloudflare Worker
+const SERVER_URL = 'https://street-fighter-server.matthieu-laurentg.workers.dev';
 
 let ws = null;
 let isHost = false;
@@ -46,45 +47,84 @@ function joinRoom(roomName) {
     if (handlers.onLobbyList) handlers.onLobbyList(publicLobbies);
 }
 
-function getLobbies() {
-    return publicLobbies;
+async function getLobbies() {
+    try {
+        const response = await fetch(`${SERVER_URL}/api/lobbies`);
+        if (!response.ok) return;
+        
+        const lobbies = await response.json();
+        if (handlers.onLobbyList) handlers.onLobbyList(lobbies);
+    } catch (error) {
+        console.error('Failed to fetch lobbies:', error);
+    }
 }
 
 function connect() {
-    ws = new WebSocket(WS_URL);
+    // Create a WebSocket connection to our Worker
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${SERVER_URL.split('//')[1]}/room/${room}?tanked=${tanked}`;
+    
+    ws = new WebSocket(wsUrl);
+    
     ws.onopen = () => {
-        ws.send(JSON.stringify({ type: 'join', room, isHost, tanked }));
-        // Only the joiner notifies the host to show Start Game
-        if (!isHost && handlers.onRoomJoined) {
-            setTimeout(() => {
-                // Notify host to show Start Game button
-                if (handlers.onReadyToStart) handlers.onReadyToStart();
-            }, 1000);
-        }
+        console.log('Connected to server');
     };
+    
     ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'update' && handlers.onOpponentUpdate) {
-            handlers.onOpponentUpdate(data.payload);
-        }
-        if (data.type === 'start' && handlers.onStartGame) {
-            handlers.onStartGame(false); // joiner starts game
+        try {
+            const data = JSON.parse(event.data);
+            handleServerMessage(data);
+        } catch (error) {
+            console.error('Invalid message from server:', error);
         }
     };
+    
     ws.onclose = () => {
+        if (handlers.onOpponentLeft) handlers.onOpponentLeft();
+    };
+    
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
         if (handlers.onOpponentLeft) handlers.onOpponentLeft();
     };
 }
 
+function handleServerMessage(data) {
+    switch (data.type) {
+        case 'room-created':
+            // Already handled by createRoom function
+            break;
+            
+        case 'room-joined':
+            // Already handled by joinRoom function
+            break;
+            
+        case 'ready-to-start':
+            if (handlers.onReadyToStart) handlers.onReadyToStart();
+            break;
+            
+        case 'start':
+            if (handlers.onStartGame) handlers.onStartGame(!isHost);
+            break;
+            
+        case 'update':
+            if (handlers.onOpponentUpdate) handlers.onOpponentUpdate(data.payload);
+            break;
+            
+        case 'opponent-left':
+            if (handlers.onOpponentLeft) handlers.onOpponentLeft();
+            break;
+    }
+}
+
 function sendUpdate(payload) {
-    if (ws && ws.readyState === 1) {
-        ws.send(JSON.stringify({ type: 'update', room, payload }));
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'update', payload }));
     }
 }
 
 function sendStartGame() {
-    if (ws && ws.readyState === 1 && isHost) {
-        ws.send(JSON.stringify({ type: 'start', room }));
-        if (handlers.onStartGame) handlers.onStartGame(true); // host starts game
+    if (ws && ws.readyState === WebSocket.OPEN && isHost) {
+        ws.send(JSON.stringify({ type: 'start' }));
     }
 } 
