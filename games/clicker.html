@@ -80,7 +80,7 @@
 </head>
 
 <body>
-    <img id="clickButton" src="https://cataas.com/cat" alt="Click Me!">
+    <img id="clickButton" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM0MjQyNDIiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM4ODgiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjODg4Ii8+PHBhdGggZmlsbD0iIzg4OCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMjIyIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=" alt="Click Me!">
     <div id="score">Score: 0</div>
 
     <button id="toggleSidebarButton">Upgrades</button>
@@ -116,16 +116,34 @@
         let catTreeMultiplier = 1;
         let upgrade5Cost = 500;
         const catImages = [
-            "https://cataas.com/cat/gif",
-            "https://cataas.com/cat/cute",
-            "https://cataas.com/cat/says/hello",
-            "https://cataas.com/cat",
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM0MjQyNDIiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM4ODgiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjODg4Ii8+PHBhdGggZmlsbD0iIzg4OCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMjIyIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=",
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM2MjQxMDAiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM5OTY2MDAiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjOTk2NjAwIi8+PHBhdGggZmlsbD0iIzk5NjYwMCIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=",
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM3Nzc3NzciIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiNjY2MiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjY2NjIi8+PHBhdGggZmlsbD0iI2NjYyIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMzMzIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4=",
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiM0NDQ0NjYiIHJ4PSIxMCIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9IiM5OTk5YWEiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSIxNTAiIHI9IjYwIiBmaWxsPSIjOTk5OWFhIi8+PHBhdGggZmlsbD0iIzk5OTlhYSIgZD0iTTEyMCAyMjBjMC0zOC42NiA0MC0zMCA4MCAtMzBzODAgLTguNjYgODAgMzBjMCAzMy40MyAtMzUuODIgNjAgLTgwIDYwcy04MC0yNi41Ny04MC02MHoiLz48cGF0aCBmaWxsPSIjMjIyMjMzIiBkPSJNMTUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHpNMjUwIDEyMGE0MCA0MCAwIDAgMC04IDIwIDE1IDE1IDAgMCAwIDE2IDBhNDAgNDAgMCAwIDAtOC0yMHoiLz48L3N2Zz4="
         ];
         let currentCatIndex = 0;
 
-        clickButton.addEventListener('click', () => {
+        clickButton.addEventListener('click', (e) => {
             score += clickValue * scoreMultiplier * catTreeMultiplier + catnipBonus;
             scoreDisplay.textContent = `Score: ${score}`;
+            // Visual effect: emoji burst
+            for (let i = 0; i < 5; i++) {
+                const emoji = document.createElement('div');
+                emoji.textContent = ['😺','😻','🐾','🐱','✨'][Math.floor(Math.random()*5)];
+                emoji.style.position = 'fixed';
+                emoji.style.left = (e.clientX + Math.random()*60-30) + 'px';
+                emoji.style.top = (e.clientY + Math.random()*30-15) + 'px';
+                emoji.style.fontSize = (32 + Math.random()*16) + 'px';
+                emoji.style.pointerEvents = 'none';
+                emoji.style.transition = 'transform 1s, opacity 1s';
+                emoji.style.zIndex = 10;
+                document.body.appendChild(emoji);
+                setTimeout(() => {
+                    emoji.style.transform = `translateY(-80px) scale(${0.7+Math.random()*0.6})`;
+                    emoji.style.opacity = '0';
+                }, 10);
+                setTimeout(() => emoji.remove(), 1100);
+            }
         });
 
         upgrade1Button.addEventListener('click', () => {
