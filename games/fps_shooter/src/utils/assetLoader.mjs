@@ -36,6 +36,25 @@ const soundsToLoad = [
 
 // Main loading function
 export async function loadAssets(progressCallback) {
+    // Skip loading for now since we have no assets to load
+    // This prevents the infinite loading issue
+    console.log("Skipping asset loading for now");
+    
+    // Simulate loading completion
+    if (progressCallback) {
+        progressCallback(0);
+        setTimeout(() => {
+            progressCallback(0.5);
+            setTimeout(() => {
+                progressCallback(1);
+            }, 300);
+        }, 300);
+    }
+    
+    // Return the empty assets object
+    return assets;
+
+    /* Original loading code, disabled for now
     // Calculate total assets to load
     totalAssets = texturesToLoad.length + modelsToLoad.length + soundsToLoad.length;
     loadedAssets = 0;
@@ -61,6 +80,7 @@ export async function loadAssets(progressCallback) {
     }
     
     return assets;
+    */
 }
 
 // Helper function to update loading progress
