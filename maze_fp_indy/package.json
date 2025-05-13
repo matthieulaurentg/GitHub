@@ -1,0 +1,9 @@
+{
+  "name": "maze_fp_indy",
+  "version": "1.0.0",
+  "main": "index.html",
+  "description": "Indiana Jones style first-person maze game with boulders and monsters.",
+  "dependencies": {
+    "three": "^0.159.0"
+  }
+} 
