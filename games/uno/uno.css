@@ -30,56 +30,94 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-  font-size: 20px;
-  color: #282c34;
-  cursor: pointer;
-  position: relative;
-  transition: transform 0.3s ease;
+    font-size: 20px;
+    color: #282c34;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.3s ease;
 }
 
 .card.moving {
-  transform: translateY(-20px);
-  transition: transform 0.3s ease;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.card-back {
+    width: 30px;
+    height: 40px;
+    background-color: #2c3e50;
+    border: 1px solid #abb2bf;
+    border-radius: 3px;
+    margin: 3px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-back::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        #34495e,
+        #34495e 5px,
+        #2c3e50 5px,
+        #2c3e50 10px
+    );
 }
 
 #discard-pile {
-  width: 70px;
-  height: 100px;
-  background-color: #61dafb;
-  border: 1px solid #abb2bf;
-  border-radius: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  color: #282c34;
-  margin-bottom: 20px;
-  position: relative;
+    width: 70px;
+    height: 100px;
+    background-color: #61dafb;
+    border: 1px solid #abb2bf;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: #282c34;
+    margin-bottom: 20px;
+    position: relative;
 }
 
 #draw-card {
-  padding: 10px 20px;
-  background-color: #61dafb;
-  border: none;
-  border-radius: 5px;
-  color: #282c34;
-  cursor: pointer;
-  margin-bottom: 20px;
+    padding: 10px 20px;
+    background-color: #61dafb;
+    border: none;
+    border-radius: 5px;
+    color: #282c34;
+    cursor: pointer;
+    margin-bottom: 20px;
 }
 
 #ai-players {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 20px;
 }
 
 .ai-player {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
 }
 
 .ai-hand {
-  display: flex;
+    display: flex;
+    margin-top: 10px;
+}
+
+#instructions {
+    margin-bottom: 20px;
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.4;
 }

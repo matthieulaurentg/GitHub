@@ -1,5 +1,5 @@
 const colors = ['red', 'green', 'blue', 'yellow'];
-34const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'Draw Two'];
+const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'Draw Two'];
 const wildCards = ['Wild', 'Wild Draw Four'];
 
 let deck = [];
@@ -61,129 +61,185 @@ function renderCard(card, container, isDraggable = false) {
 
 function renderPlayerHand() {
     playerHandElement.innerHTML = '';
-    for (const card of playerHand) {
-        renderCard(card, playerHandElement, currentPlayer === 0);
-    }
+    playerHand.forEach(card => {
+        renderCard(card, playerHandElement, true);
+    });
 }
 
 function renderDiscardPile() {
     discardPileElement.innerHTML = '';
-    const topCard = discardPile[discardPile.length - 1];
-    renderCard(topCard, discardPileElement);
+    if (discardPile.length > 0) {
+        renderCard(discardPile[discardPile.length - 1], discardPileElement);
+    }
 }
 
 function renderAIHands() {
-    for (let i = 0; i < aiHands.length; i++) {
-        const aiHandElement = document.getElementById(`ai-${i + 1}`);
-        aiHandElement.innerHTML = '';
-        for (const card of aiHands[i]) {
-            renderCard({ color: 'gray', value: '' }, aiHandElement); // Render AI cards face down
-        }
-    }
+    const aiPlayersElement = document.getElementById('ai-players');
+    aiPlayersElement.innerHTML = '';
+    
+    aiHands.forEach((hand, index) => {
+        const aiElement = document.createElement('div');
+        aiElement.classList.add('ai-player');
+        aiElement.innerHTML = `<div>AI ${index + 1} (${hand.length} cards)</div>`;
+        
+        const aiHandElement = document.createElement('div');
+        aiHandElement.classList.add('ai-hand');
+        
+        hand.forEach(() => {
+            const cardBack = document.createElement('div');
+            cardBack.classList.add('card-back');
+            aiHandElement.appendChild(cardBack);
+        });
+        
+        aiElement.appendChild(aiHandElement);
+        aiPlayersElement.appendChild(aiElement);
+    });
 }
 
 function canPlay(card) {
     const topCard = discardPile[discardPile.length - 1];
-    return card.color === 'wild' || card.color === topCard.color || card.value === topCard.value;
+    return card.color === 'wild' || topCard.color === 'wild' || card.color === topCard.color || card.value === topCard.value;
 }
 
 function playCard(card, hand, index) {
-  if (canPlay(card)) {
-    const cardElement =
-      hand === playerHand
-        ? playerHandElement.children[index]
-        : document.getElementById(`ai-${currentPlayer}`);
-    if (cardElement) {
-      cardElement.classList.add("moving");
+    if (!canPlay(card)) {
+        alert('Invalid move');
+        return;
     }
-
-    discardPile.push(hand.splice(index, 1)[0]);
-    if (card.value === "Skip") {
-      currentPlayer = (currentPlayer + 2 * gameDirection) % 4;
-    } else if (card.value === "Reverse") {
-      gameDirection *= -1;
-      currentPlayer = (currentPlayer + 4 + gameDirection) % 4; // Ensure positive index
-    } else if (card.value === "Draw Two") {
-      const nextPlayer = (currentPlayer + gameDirection) % 4;
-      if (nextPlayer === 0) {
-        playerHand.push(deck.pop());
-        playerHand.push(deck.pop());
-      } else {
-        aiHands[nextPlayer - 1].push(deck.pop());
-        aiHands[nextPlayer - 1].push(deck.pop());
-      }
-      currentPlayer = (currentPlayer + 2 * gameDirection) % 4;
-    } else if (card.value === "Wild Draw Four") {
-      const nextPlayer = (currentPlayer + gameDirection) % 4;
-      if (nextPlayer === 0) {
-        playerHand.push(deck.pop(), deck.pop(), deck.pop(), deck.pop());
-      } else {
-        aiHands[nextPlayer - 1].push(deck.pop(), deck.pop(), deck.pop(), deck.pop());
-      }
-      currentPlayer = (currentPlayer + 2 * gameDirection) % 4;
-    } else {
-      currentPlayer = (currentPlayer + gameDirection) % 4;
-    }
-
-    setTimeout(() => {
-      renderPlayerHand();
-      renderDiscardPile();
-      renderAIHands();
-      if (cardElement) {
-        cardElement.classList.remove("moving");
-      }
-      if (hand.length === 0) {
-        alert(`Player ${currentPlayer === 0 ? "You" : currentPlayer} won!`);
+    
+    hand.splice(index, 1);
+    discardPile.push(card);
+    
+    // Check for win condition
+    if (hand.length === 0) {
+        if (hand === playerHand) {
+            alert('You win!');
+        } else {
+            alert(`AI ${aiHands.indexOf(hand) + 1} wins!`);
+        }
         initializeGame();
-      }
-    }, 300); // Animation duration
-  }
+        return;
+    }
+    
+    // Handle special cards
+    handleSpecialCard(card);
+    
+    renderPlayerHand();
+    renderDiscardPile();
+    renderAIHands();
+    
+    // Move to next player's turn
+    if (hand === playerHand) {
+        setTimeout(playAITurn, 1000);
+    }
+}
+
+function handleSpecialCard(card) {
+    switch (card.value) {
+        case 'Skip':
+            advancePlayer();
+            break;
+        case 'Reverse':
+            gameDirection *= -1;
+            break;
+        case 'Draw Two':
+            const nextPlayer = (currentPlayer + gameDirection) % 4;
+            if (nextPlayer === 0) {
+                playerHand.push(...deck.splice(0, 2));
+            } else {
+                aiHands[nextPlayer - 1].push(...deck.splice(0, 2));
+            }
+            break;
+        case 'Wild Draw Four':
+            const wildDrawPlayer = (currentPlayer + gameDirection) % 4;
+            if (wildDrawPlayer === 0) {
+                playerHand.push(...deck.splice(0, 4));
+            } else {
+                aiHands[wildDrawPlayer - 1].push(...deck.splice(0, 4));
+            }
+            card.color = colors[Math.floor(Math.random() * colors.length)];
+            break;
+        case 'Wild':
+            card.color = colors[Math.floor(Math.random() * colors.length)];
+            break;
+    }
+    
+    advancePlayer();
+}
+
+function advancePlayer() {
+    currentPlayer = (currentPlayer + gameDirection + 4) % 4;
 }
 
 function playAITurn() {
-    const aiHand = aiHands[currentPlayer - 1];
+    if (currentPlayer === 0) return;
+    
+    const aiIndex = currentPlayer - 1;
+    const aiHand = aiHands[aiIndex];
+    
+    // Find a valid card to play
     const topCard = discardPile[discardPile.length - 1];
-    let cardPlayed = false;
-
-    // Try to play a matching card
+    
+    // AI logic - prioritize special cards
+    let playIndex = -1;
+    
+    // First look for special cards
     for (let i = 0; i < aiHand.length; i++) {
-        if (canPlay(aiHand[i])) {
-            playCard(aiHand[i], aiHand, i);
-            cardPlayed = true;
+        const card = aiHand[i];
+        if (canPlay(card) && (card.value === 'Skip' || card.value === 'Reverse' || card.value === 'Draw Two')) {
+            playIndex = i;
             break;
         }
     }
-
-    // If no matching card, try to play a wild card
-    if (!cardPlayed) {
+    
+    // If no special cards, look for wild cards
+    if (playIndex === -1) {
         for (let i = 0; i < aiHand.length; i++) {
-            if (aiHand[i].color === 'wild') {
-                playCard(aiHand[i], aiHand, i);
-                cardPlayed = true;
+            const card = aiHand[i];
+            if (card.color === 'wild') {
+                playIndex = i;
                 break;
             }
         }
     }
-
-    // If no playable card, draw a card
-    if (!cardPlayed) {
-        aiHand.push(deck.pop());
-        const newCard = aiHand[aiHand.length - 1];
-        if (canPlay(newCard)) {
-            playCard(newCard, aiHand, aiHand.length - 1);
-            cardPlayed = true;
+    
+    // If no special or wild cards, look for any valid card
+    if (playIndex === -1) {
+        for (let i = 0; i < aiHand.length; i++) {
+            const card = aiHand[i];
+            if (canPlay(card)) {
+                playIndex = i;
+                break;
+            }
         }
     }
-
-    // End turn if no card was played, otherwise AI plays again
-    if (!cardPlayed) {
-        currentPlayer = (currentPlayer + gameDirection) % 4;
+    
+    // If found a card to play
+    if (playIndex !== -1) {
+        const cardToPlay = aiHand[playIndex];
+        playCard(cardToPlay, aiHand, playIndex);
+    } else {
+        // Draw a card
+        if (deck.length > 0) {
+            const drawnCard = deck.pop();
+            aiHand.push(drawnCard);
+            
+            // Check if drawn card can be played
+            if (canPlay(drawnCard)) {
+                playCard(drawnCard, aiHand, aiHand.length - 1);
+            } else {
+                advancePlayer();
+                setTimeout(playAITurn, 1000);
+            }
+        } else {
+            advancePlayer();
+            setTimeout(playAITurn, 1000);
+        }
     }
     
+    renderPlayerHand();
+    renderDiscardPile();
     renderAIHands();
-    if (currentPlayer !== 0 && cardPlayed) {
-        setTimeout(playAITurn, 1000);
-    }
 }
 
 function initializeGame() {
@@ -215,11 +271,19 @@ discardPileElement.addEventListener('drop', (event) => {
 });
 
 drawCardButton.addEventListener('click', () => {
-    playerHand.push(deck.pop());
-    renderPlayerHand();
-    currentPlayer = (currentPlayer + gameDirection) % 4;
-    if (currentPlayer !== 0) {
-        setTimeout(playAITurn, 1000);
+    if (currentPlayer !== 0) return;
+    
+    if (deck.length > 0) {
+        const drawnCard = deck.pop();
+        playerHand.push(drawnCard);
+        renderPlayerHand();
+        
+        if (canPlay(drawnCard)) {
+            // Player can play the drawn card if they want, but we don't auto-play it
+        } else {
+            advancePlayer();
+            setTimeout(playAITurn, 1000);
+        }
     }
 });
 

@@ -1,0 +1,20 @@
+{
+  "name": "games-collection",
+  "version": "1.0.0",
+  "description": "A collection of browser-based games built with various JavaScript libraries and frameworks",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-game-playwright.mjs"
+  },
+  "keywords": [
+    "games",
+    "javascript",
+    "html5",
+    "browser-games"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.52.0"
+  }
+}
