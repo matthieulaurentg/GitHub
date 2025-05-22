@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playing Retro Game</title>
-    <link rel="stylesheet" href="styles/main.css">
     <style>
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -14,24 +16,48 @@
             flex-direction: column;
         }
         
-        .emulator-container {
-            flex-direction: column;
-            flex: 1;
-            padding: 10px;
-        }
-        
-        #game-info {
-            margin: 20px 0;
+        .game-header {
+            background-color: #1e1e1e;
+            padding: 15px;
             text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        #emulator {
+        .back-button {
+            color: #0088ff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 12px;
+            background-color: #252525;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .back-button:hover {
+            background-color: #333333;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0af;
+        }
+        
+        .controls-info {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .emulator-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
+            justify-content: center;
+            padding: 20px;
         }
         
         #game {
@@ -41,142 +67,33 @@
             background-color: #000;
             border-radius: 5px;
             overflow: hidden;
-            position: relative;
+            margin: 0 auto;
         }
         
-        .rom-warning {
-            background-color: #553300;
-            border-radius: 5px;
-            padding: 15px;
-            margin-top: 15px;
-            color: #ffcc00;
-            text-align: center;
+        @media (max-width: 800px) {
+            #game {
+                height: 450px;
+            }
         }
         
-        .rom-warning a {
-            color: #ffcc00;
-            text-decoration: underline;
-        }
-        
-        .rom-warning code {
-            display: block;
-            background-color: #442800;
-            padding: 8px;
-            margin: 8px 0;
-            border-radius: 3px;
-            font-family: monospace;
-        }
-        
-        .loading-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #fff;
-            font-size: 18px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 10;
-        }
-        
-        .loading-spinner {
-            border: 4px solid rgba(0, 136, 255, 0.3);
-            border-top: 4px solid #0088ff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .emulator-features {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-top: 20px;
-            gap: 10px;
-            width: 100%;
-            max-width: 800px;
-        }
-        
-        .feature-card {
-            flex: 1;
-            min-width: 200px;
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .feature-card h3 {
-            color: #0088ff;
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        
-        .feature-card p {
-            margin: 0;
-            font-size: 14px;
-            color: #cccccc;
+        @media (max-width: 600px) {
+            #game {
+                height: 350px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="game-header">
-            <a href="index.html" class="back-button">← Back to Games</a>
-            <h1 id="game-title">Loading Game...</h1>
-            <div class="controls-info">
-                <span>Loading game information...</span>
-            </div>
+    <div class="game-header">
+        <a href="index.html" class="back-button">← Back to Games</a>
+        <h1 id="game-title">Loading Game...</h1>
+        <div class="controls-info">
+            <span id="controls-text">Loading...</span>
         </div>
-        
-        <div class="emulator-container">
-            <div id="game-info">
-                <p>Loading game information...</p>
-            </div>
-            
-            <div id="emulator">
-                <div id="game">
-                    <div class="loading-indicator">
-                        <div class="loading-spinner"></div>
-                        <p>Loading Pre-Downloaded ROM...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="rom-warning">
-                <h3>Loading ROM...</h3>
-                <p>Accessing pre-downloaded ROM file from emulatorgames.net</p>
-                <div class="loading-spinner" style="margin: 15px auto;"></div>
-                <p>Please wait while the emulator initializes...</p>
-            </div>
-            
-            <div class="emulator-features">
-                <div class="feature-card">
-                    <h3>💾 Save States</h3>
-                    <p>Press F2 to save your game progress and F4 to load it later.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>⏩ Fast Forward</h3>
-                    <p>Hold the Spacebar to speed up gameplay.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>⏪ Rewind</h3>
-                    <p>Press R to rewind gameplay when you make a mistake.</p>
-                </div>
-            </div>
-        </div>
+    </div>
+    
+    <div class="emulator-container">
+        <div id="game"></div>
     </div>
     
     <!-- EmulatorJS Scripts -->
@@ -186,19 +103,20 @@
         var EJS_gameName = "";
         var EJS_color = "#0088ff";
         var EJS_startOnLoaded = true;
-        var EJS_onLoadError = null; // Will be set in emulator.mjs
-        var EJS_onGameStart = null; // Will be set in emulator.mjs
-        var EJS_pathtodata = ""; // Will be set in emulator.mjs
+        var EJS_pathtodata = "https://cdn.emulatorjs.org/latest/data/";
         var EJS_gameUrl = "";
         var EJS_netplayUrl = 'https://netplay.emulatorjs.org';
-        // Default options will be set in emulator.mjs
+        var EJS_defaultOptions = {
+            "save-state-slot": 1,
+            "save-state-location": "browser",
+            "cheats": true,
+            "shader": "crt",
+            "volume": 0.7
+        };
     </script>
-    <script src="scripts/emulator.mjs" type="module"></script>
     
     <!-- Script for handling URL parameters and game loading -->
-    <script type="module">
-        import { getROMInfo } from './scripts/rom-downloader.mjs';
-        
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Get URL parameters
             const urlParams = new URLSearchParams(window.location.search);
@@ -234,71 +152,138 @@
                 return;
             }
             
-            // Check if Konami code was activated
-            const konamiActivated = localStorage.getItem('konamiActivated') === 'true';
+            // Game library mapping
+            const games = {
+                "gba": {
+                    "pokemon-emerald": {
+                        title: "Pokémon Emerald",
+                        description: "Embark on a journey in the Hoenn region in this classic Pokémon adventure."
+                    },
+                    "mario-advance4": {
+                        title: "Super Mario Advance 4",
+                        description: "Play as Mario in this GBA remake of Super Mario Bros. 3."
+                    },
+                    "zelda-minish-cap": {
+                        title: "The Legend of Zelda: The Minish Cap",
+                        description: "Join Link in this adventure where he can shrink to the size of the Minish people."
+                    }
+                },
+                "nes": {
+                    "super-mario-bros": {
+                        title: "Super Mario Bros",
+                        description: "The classic platformer that started it all - help Mario rescue Princess Peach from Bowser."
+                    },
+                    "zelda": {
+                        title: "The Legend of Zelda",
+                        description: "The first game in the Legend of Zelda series - explore Hyrule and defeat Ganon."
+                    },
+                    "metroid": {
+                        title: "Metroid",
+                        description: "Control Samus Aran as you explore planet Zebes and defeat the Space Pirates."
+                    }
+                },
+                "snes": {
+                    "super-mario-world": {
+                        title: "Super Mario World",
+                        description: "Join Mario and Yoshi in this classic SNES adventure."
+                    },
+                    "zelda-link-to-the-past": {
+                        title: "The Legend of Zelda: A Link to the Past",
+                        description: "One of the greatest Zelda games ever made - explore both Light and Dark worlds."
+                    },
+                    "street-fighter-2": {
+                        title: "Street Fighter II Turbo",
+                        description: "The legendary fighting game that defined the genre."
+                    }
+                }
+            };
             
-            // Get ROM info
-            const romInfo = getROMInfo(system, game);
-            
-            if (!romInfo) {
-                showError("Invalid game parameter or ROM not found");
+            // Get game info
+            const gameInfo = games[system] && games[system][game];
+            if (!gameInfo) {
+                showError("Invalid game parameter");
                 return;
             }
             
             // Update page with game info
-            document.title = `Playing ${romInfo.title}`;
-            document.getElementById('game-title').textContent = romInfo.title;
-            document.getElementById('game-info').innerHTML = `
-                <p>${romInfo.description}</p>
-                ${konamiActivated ? '<p style="color: #ff8800; font-weight: bold;">⭐ SPECIAL POWERS ACTIVATED! ⭐</p>' : ''}
-                <p><strong>Source:</strong> <a href="${romInfo.source}" target="_blank" style="color: #0088ff;">emulatorgames.net</a></p>
-            `;
+            document.title = `Playing ${gameInfo.title}`;
+            document.getElementById('game-title').textContent = gameInfo.title;
+            
+            // Update EmulatorJS variables
+            window.EJS_core = validSystems[system].core;
+            window.EJS_gameName = gameInfo.title;
+            window.EJS_gameUrl = `roms/${system}/${game}${validSystems[system].extension}`;
             
             // Update controls info based on system
-            updateControlsInfo(system);
-            
-            // Set the core for EmulatorJS
-            window.EJS_core = validSystems[system].core;
-            window.EJS_gameName = romInfo.title;
-        });
-        
-        function updateControlsInfo(system) {
             const controlsMap = {
                 'gba': 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift',
                 'nes': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
                 'snes': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift'
             };
             
-            const controlsInfo = document.querySelector('.controls-info span');
+            const controlsInfo = document.getElementById('controls-text');
             if (controlsInfo && controlsMap[system]) {
                 controlsInfo.textContent = controlsMap[system];
             }
-        }
+            
+            // Load the EmulatorJS script
+            const script = document.createElement('script');
+            script.src = "https://cdn.emulatorjs.org/latest/loader.js";
+            document.body.appendChild(script);
+        });
         
         function showError(message) {
             document.getElementById('game-title').textContent = "Error";
-            document.getElementById('game-info').innerHTML = `
-                <p style="color: #ff3333;">Error: ${message}</p>
-                <p>Please <a href="index.html" style="color: #0088ff;">return to the game list</a> and try again.</p>
-            `;
-            
-            const romWarning = document.querySelector('.rom-warning');
-            if (romWarning) {
-                romWarning.style.backgroundColor = '#552222';
-                romWarning.style.color = '#ffaaaa';
-                romWarning.innerHTML = `
-                    <h3>Error Loading ROM</h3>
-                    <p>${message}</p>
-                    <p>Please return to the game list and try again.</p>
+            const gameElement = document.getElementById('game');
+            if (gameElement) {
+                gameElement.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #ff3333;">
+                        <h2>Error: ${message}</h2>
+                        <p>Please <a href="index.html" style="color: #0088ff;">return to the game list</a> and try again.</p>
+                    </div>
                 `;
             }
-            
-            // Hide loading indicator
-            const loadingIndicator = document.querySelector('.loading-indicator');
-            if (loadingIndicator) {
-                loadingIndicator.style.display = 'none';
-            }
         }
+        
+        // Handle Konami Code for cheats
+        let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiPosition = 0;
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === konamiCode[konamiPosition]) {
+                konamiPosition++;
+                
+                if (konamiPosition === konamiCode.length) {
+                    // Konami code completed!
+                    localStorage.setItem('konamiActivated', 'true');
+                    
+                    // Show a fun message
+                    const message = document.createElement('div');
+                    message.style.position = 'fixed';
+                    message.style.top = '0';
+                    message.style.left = '0';
+                    message.style.width = '100%';
+                    message.style.padding = '10px';
+                    message.style.backgroundColor = '#ffcc00';
+                    message.style.color = '#000';
+                    message.style.textAlign = 'center';
+                    message.style.zIndex = '9999';
+                    message.style.fontWeight = 'bold';
+                    message.textContent = '⭐ CHEAT MODE ACTIVATED! ⭐';
+                    document.body.appendChild(message);
+                    
+                    setTimeout(() => {
+                        message.style.transition = 'opacity 1s';
+                        message.style.opacity = '0';
+                        setTimeout(() => message.remove(), 1000);
+                    }, 3000);
+                    
+                    konamiPosition = 0;
+                }
+            } else {
+                konamiPosition = 0;
+            }
+        });
     </script>
 </body>
 </html> 

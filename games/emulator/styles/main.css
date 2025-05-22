@@ -8,154 +8,140 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #121212;
     color: #f0f0f0;
-    line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
 .game-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: #1e1e1e;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .game-header {
-    padding: 20px;
-    background-color: #252525;
+    background-color: #1e1e1e;
+    padding: 15px 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    position: relative;
+}
+
+.game-header h1 {
+    margin: 0;
+    color: #0af;
+    font-size: 1.5rem;
 }
 
 .back-button {
-    position: absolute;
-    left: 20px;
-    top: 20px;
     color: #0088ff;
     text-decoration: none;
     font-weight: bold;
+    padding: 8px 12px;
+    background-color: #252525;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 .back-button:hover {
-    text-decoration: underline;
-}
-
-h1 {
-    color: #0088ff;
-    margin-bottom: 10px;
-}
-
-h2 {
-    color: #0088ff;
-    margin: 20px 0 15px 0;
-    border-bottom: 1px solid #333;
-    padding-bottom: 5px;
-}
-
-h3 {
-    color: #0088ff;
-    margin: 15px 0 10px 0;
+    background-color: #333333;
 }
 
 .controls-info {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    font-size: 0.9rem;
-    color: #b0b0b0;
+    font-size: 0.8rem;
+    color: #888;
 }
 
 .emulator-container {
-    padding: 20px;
+    flex: 1;
     display: flex;
-    gap: 30px;
+    padding: 20px;
 }
 
-/* Game List Styles */
+@media (max-width: 768px) {
+    .game-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .back-button {
+        align-self: flex-start;
+    }
+}
+
+/* Game list styles */
 .game-list {
-    flex: 1;
-    min-width: 300px;
+    width: 300px;
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 5px;
+    margin-right: 20px;
+}
+
+.game-list h2, .instructions h2 {
+    color: #0af;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-top: 0;
 }
 
 .system-section {
-    margin-bottom: 25px;
-    background-color: #252525;
-    padding: 15px;
-    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 .system-section h3 {
-    color: #0088ff;
-    margin-top: 0;
+    color: #0af;
+    font-size: 1rem;
+    margin-bottom: 10px;
 }
 
 .system-section ul {
     list-style-type: none;
-    padding-left: 10px;
-}
-
-.system-section li {
-    margin: 10px 0;
+    padding: 0;
+    margin: 0;
 }
 
 .game-link {
-    color: #f0f0f0;
-    text-decoration: none;
     display: block;
-    padding: 10px;
+    padding: 8px 10px;
+    background-color: #252525;
     border-radius: 5px;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: #f0f0f0;
+    transition: background-color 0.3s;
 }
 
 .game-link:hover {
-    background-color: #333;
-    border-left-color: #0088ff;
-    padding-left: 15px;
+    background-color: #333333;
 }
 
-/* ROM Status Indicators */
 .rom-ready {
     display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+    margin-left: 5px;
+    width: 8px;
+    height: 8px;
     background-color: #00cc00;
-    margin-left: 8px;
-    vertical-align: middle;
-}
-
-.rom-loading {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
     border-radius: 50%;
-    background-color: #ffaa00;
-    margin-left: 8px;
-    vertical-align: middle;
 }
 
-/* Instructions Styles */
 .instructions {
-    flex: 2;
-    min-width: 300px;
+    flex: 1;
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 5px;
 }
 
 .instructions p {
-    margin-bottom: 10px;
+    line-height: 1.6;
 }
 
 .note {
     background-color: #252525;
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 5px;
     margin: 20px 0;
-    border-left: 4px solid #0088ff;
 }
 
 .controls-table {
@@ -165,37 +151,42 @@ h3 {
 }
 
 .controls-table th, .controls-table td {
-    padding: 10px;
+    border: 1px solid #333;
+    padding: 8px;
     text-align: left;
-    border-bottom: 1px solid #333;
 }
 
 .controls-table th {
     background-color: #252525;
-    color: #0088ff;
 }
 
-.controls-table tr:hover {
-    background-color: #252525;
-}
-
-/* Secret tip styling */
+/* Secret tip for Konami code */
 .secret-tip {
     margin-top: 30px;
-    padding: 12px;
+    padding: 15px;
     background-color: #252525;
-    border-radius: 8px;
-    border-left: 4px solid #ff8800;
-    color: #ff8800;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
+    border-radius: 5px;
+    color: #888;
     font-style: italic;
+    text-align: center;
+    cursor: pointer;
+    transition: color 0.3s;
 }
 
 .secret-tip:hover {
-    background-color: #333;
-    transform: scale(1.02);
+    color: #0af;
+}
+
+@media (max-width: 900px) {
+    .emulator-container {
+        flex-direction: column;
+    }
+    
+    .game-list {
+        width: auto;
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
 }
 
 /* Emulator screen styles */

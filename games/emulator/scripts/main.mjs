@@ -1,54 +1,130 @@
 /**
- * Main script for the retro game emulator
- * Using pre-downloaded ROMs from emulatorgames.net
+ * Main script for the EmulatorJS game collection
+ * This simple script initializes the UI and Konami code functionality
  */
 
 import { initializeROMs } from './rom-downloader.mjs';
 import { initializeAllROMs } from './rom-simulator.mjs';
 
-// Konami Code Easter Egg
-const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-let konamiIndex = 0;
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize ROMs for the main game list page
-    const isGameList = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/');
+    // Initialize UI elements
+    initializeUI();
     
-    if (isGameList) {
-        // Initialize all ROM information for the game list
-        initializeROMs();
-        
-        // Update the instructions to indicate ROMs are pre-downloaded
-        updateInstructions();
-    }
+    // Add event listeners for Konami code
+    setupKonamiCode();
+});
+
+/**
+ * Initialize UI elements
+ */
+function initializeUI() {
+    // Mark all ROMs as available with green indicators
+    const romIndicators = document.querySelectorAll('.rom-ready');
+    romIndicators.forEach(indicator => {
+        indicator.style.display = 'inline-block';
+    });
     
-    // Create Easter Egg element but hide it initially
-    createEasterEgg();
-    
-    // Setup secret tip click handler
+    // Add hover effect to the secret tip
     const secretTip = document.querySelector('.secret-tip');
     if (secretTip) {
         secretTip.addEventListener('click', () => {
-            alert('Try using the Konami Code: ↑ ↑ ↓ ↓ ← → ← → B A');
+            alert('Hint: Try pressing ↑↑↓↓←→←→BA while playing a game!');
         });
     }
+}
+
+/**
+ * Set up the Konami code easter egg
+ */
+function setupKonamiCode() {
+    // Konami code sequence: ↑↑↓↓←→←→BA
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 
+                        'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 
+                        'b', 'a'];
+    let konamiPosition = 0;
     
-    // Setup Konami Code listener
-    document.addEventListener('keydown', (e) => {
-        // Check if the key matches the expected key in sequence
-        if (e.key === konamiCode[konamiIndex]) {
-            konamiIndex++;
+    document.addEventListener('keydown', e => {
+        // Check if the pressed key matches the next key in the Konami code
+        if (e.key === konamiCode[konamiPosition]) {
+            konamiPosition++;
             
-            // If the full sequence is entered correctly
-            if (konamiIndex === konamiCode.length) {
-                activateEasterEgg();
-                konamiIndex = 0; // Reset for next time
+            // If the entire code is entered
+            if (konamiPosition === konamiCode.length) {
+                // Activate cheat mode
+                activateCheatMode();
+                
+                // Reset the position
+                konamiPosition = 0;
             }
         } else {
-            konamiIndex = 0; // Reset if wrong key
+            // Reset if wrong key is pressed
+            konamiPosition = 0;
         }
     });
-});
+}
+
+/**
+ * Activate cheat mode when Konami code is entered
+ */
+function activateCheatMode() {
+    // Store activation in localStorage for persistence
+    localStorage.setItem('konamiActivated', 'true');
+    
+    // Create a notification
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%)';
+    notification.style.backgroundColor = '#ffcc00';
+    notification.style.color = '#000';
+    notification.style.padding = '15px 25px';
+    notification.style.borderRadius = '5px';
+    notification.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+    notification.style.zIndex = '999';
+    notification.style.fontWeight = 'bold';
+    notification.style.fontSize = '16px';
+    notification.textContent = '⭐ CHEAT MODE ACTIVATED! ⭐';
+    
+    // Add to the document
+    document.body.appendChild(notification);
+    
+    // Make it disappear after 3 seconds
+    setTimeout(() => {
+        notification.style.transition = 'opacity 1s';
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 1000);
+    }, 3000);
+    
+    // Add a fun visual effect
+    addCheatEffect();
+}
+
+/**
+ * Add a visual effect when cheat mode is activated
+ */
+function addCheatEffect() {
+    // Create a flash effect
+    const flash = document.createElement('div');
+    flash.style.position = 'fixed';
+    flash.style.top = '0';
+    flash.style.left = '0';
+    flash.style.width = '100%';
+    flash.style.height = '100%';
+    flash.style.backgroundColor = '#ffcc00';
+    flash.style.opacity = '0.3';
+    flash.style.zIndex = '998';
+    
+    // Add to the document
+    document.body.appendChild(flash);
+    
+    // Fade out after a short delay
+    setTimeout(() => {
+        flash.style.transition = 'opacity 0.5s';
+        flash.style.opacity = '0';
+        setTimeout(() => flash.remove(), 500);
+    }, 100);
+}
 
 /**
  * Updates the instructions section to indicate ROMs are pre-downloaded
