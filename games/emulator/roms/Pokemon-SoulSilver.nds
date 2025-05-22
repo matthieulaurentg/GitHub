@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pokémon Red ROM Placeholder</title>
+  <script>
+    // This is a placeholder file, not an actual ROM
+    window.onload = function() {
+      console.log("Pokemon Red ROM placeholder loaded");
+    };
+  </script>
+</head>
+<body>
+  <!-- This is a placeholder file, not an actual ROM -->
+  <!-- For demonstration purposes only -->
+  <div style="display:none;">POKEMON RED PLACEHOLDER</div>
+</body>
+</html> 

@@ -75,6 +75,8 @@
             width: 80%;
             max-width: 800px;
             position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .close-btn {
             position: absolute;
@@ -99,6 +101,46 @@
             transition: background 0.2s;
         }
         .rom-card:hover {
+            background: #4a4a4a;
+        }
+        .tab-container {
+            display: flex;
+            margin-top: 20px;
+            border-bottom: 2px solid #3a3a3a;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #3a3a3a;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background: #00ff88;
+            color: black;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            margin-top: 20px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .pokemon-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .pokemon-card {
+            background: #3a3a3a;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pokemon-card:hover {
             background: #4a4a4a;
         }
     </style>
@@ -206,32 +248,124 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2 style="color: #00ff88; text-align: center;">Secret Emulator Hub</h2>
-            <p style="text-align: center;">Select a system to play classic games</p>
+            <p style="text-align: center;">Select a system or game collection</p>
             
-            <div class="rom-selector">
-                <div class="rom-card" data-system="nes">
-                    <h3>Nintendo (NES)</h3>
-                    <p>Classic 8-bit games</p>
+            <div class="tab-container">
+                <div class="tab active" data-tab="systems">Systems</div>
+                <div class="tab" data-tab="pokemon">Pokémon Games</div>
+            </div>
+            
+            <div id="systems-tab" class="tab-content active">
+                <div class="rom-selector">
+                    <div class="rom-card" data-system="nes">
+                        <h3>Nintendo (NES)</h3>
+                        <p>Classic 8-bit games</p>
+                    </div>
+                    <div class="rom-card" data-system="snes">
+                        <h3>Super Nintendo (SNES)</h3>
+                        <p>16-bit classics</p>
+                    </div>
+                    <div class="rom-card" data-system="gba">
+                        <h3>Game Boy Advance</h3>
+                        <p>Handheld favorites</p>
+                    </div>
+                    <div class="rom-card" data-system="n64">
+                        <h3>Nintendo 64</h3>
+                        <p>3D Nintendo games</p>
+                    </div>
+                    <div class="rom-card" data-system="genesis">
+                        <h3>Sega Genesis</h3>
+                        <p>16-bit Sega games</p>
+                    </div>
+                    <div class="rom-card" data-system="arcade">
+                        <h3>Arcade Games</h3>
+                        <p>Classic arcade hits</p>
+                    </div>
                 </div>
-                <div class="rom-card" data-system="snes">
-                    <h3>Super Nintendo (SNES)</h3>
-                    <p>16-bit classics</p>
-                </div>
-                <div class="rom-card" data-system="gba">
-                    <h3>Game Boy Advance</h3>
-                    <p>Handheld favorites</p>
-                </div>
-                <div class="rom-card" data-system="n64">
-                    <h3>Nintendo 64</h3>
-                    <p>3D Nintendo games</p>
-                </div>
-                <div class="rom-card" data-system="genesis">
-                    <h3>Sega Genesis</h3>
-                    <p>16-bit Sega games</p>
-                </div>
-                <div class="rom-card" data-system="arcade">
-                    <h3>Arcade Games</h3>
-                    <p>Classic arcade hits</p>
+            </div>
+            
+            <div id="pokemon-tab" class="tab-content">
+                <div class="pokemon-list">
+                    <div class="pokemon-card" data-game="pokemon-red">
+                        <h3>Pokémon Red</h3>
+                        <p>GameBoy (1996)</p>
+                        <span style="font-size:24px;">🔴</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-blue">
+                        <h3>Pokémon Blue</h3>
+                        <p>GameBoy (1996)</p>
+                        <span style="font-size:24px;">🔵</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-yellow">
+                        <h3>Pokémon Yellow</h3>
+                        <p>GameBoy (1998)</p>
+                        <span style="font-size:24px;">💛</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-gold">
+                        <h3>Pokémon Gold</h3>
+                        <p>GameBoy Color (1999)</p>
+                        <span style="font-size:24px;">✨</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-silver">
+                        <h3>Pokémon Silver</h3>
+                        <p>GameBoy Color (1999)</p>
+                        <span style="font-size:24px;">⚪</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-crystal">
+                        <h3>Pokémon Crystal</h3>
+                        <p>GameBoy Color (2000)</p>
+                        <span style="font-size:24px;">💎</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-ruby">
+                        <h3>Pokémon Ruby</h3>
+                        <p>GameBoy Advance (2002)</p>
+                        <span style="font-size:24px;">❤️</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-sapphire">
+                        <h3>Pokémon Sapphire</h3>
+                        <p>GameBoy Advance (2002)</p>
+                        <span style="font-size:24px;">💙</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-emerald">
+                        <h3>Pokémon Emerald</h3>
+                        <p>GameBoy Advance (2004)</p>
+                        <span style="font-size:24px;">💚</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-firered">
+                        <h3>Pokémon FireRed</h3>
+                        <p>GameBoy Advance (2004)</p>
+                        <span style="font-size:24px;">🔥</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-leafgreen">
+                        <h3>Pokémon LeafGreen</h3>
+                        <p>GameBoy Advance (2004)</p>
+                        <span style="font-size:24px;">🍃</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-diamond">
+                        <h3>Pokémon Diamond</h3>
+                        <p>Nintendo DS (2006)</p>
+                        <span style="font-size:24px;">💠</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-pearl">
+                        <h3>Pokémon Pearl</h3>
+                        <p>Nintendo DS (2006)</p>
+                        <span style="font-size:24px;">🔘</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-platinum">
+                        <h3>Pokémon Platinum</h3>
+                        <p>Nintendo DS (2008)</p>
+                        <span style="font-size:24px;">⚪</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-heartgold">
+                        <h3>Pokémon HeartGold</h3>
+                        <p>Nintendo DS (2009)</p>
+                        <span style="font-size:24px;">💛</span>
+                    </div>
+                    <div class="pokemon-card" data-game="pokemon-soulsilver">
+                        <h3>Pokémon SoulSilver</h3>
+                        <p>Nintendo DS (2009)</p>
+                        <span style="font-size:24px;">💙</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -256,13 +390,58 @@
             }
         });
 
+        // Tab switching functionality
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Hide all tab content
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Show the content for the active tab
+                const tabName = this.getAttribute('data-tab');
+                document.getElementById(tabName + '-tab').classList.add('active');
+            });
+        });
+
         // Handle system selection
         const romCards = document.querySelectorAll('.rom-card');
         romCards.forEach(card => {
             card.addEventListener('click', function() {
                 const system = this.getAttribute('data-system');
-                // Create or navigate to the emulator page
+                // Navigate to the emulator page
                 window.location.href = `./emulator/index.html?system=${system}`;
+            });
+        });
+
+        // Handle Pokémon game selection
+        const pokemonCards = document.querySelectorAll('.pokemon-card');
+        pokemonCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const game = this.getAttribute('data-game');
+                
+                // Determine system based on the game
+                let system = 'gb'; // Default to Game Boy
+                if (game.includes('ruby') || game.includes('sapphire') || 
+                    game.includes('emerald') || game.includes('firered') || 
+                    game.includes('leafgreen')) {
+                    system = 'gba'; // Game Boy Advance
+                } else if (game.includes('diamond') || game.includes('pearl') || 
+                           game.includes('platinum') || game.includes('heartgold') || 
+                           game.includes('soulsilver')) {
+                    system = 'nds'; // Nintendo DS
+                } else if (game.includes('gold') || game.includes('silver') || 
+                           game.includes('crystal')) {
+                    system = 'gbc'; // Game Boy Color
+                }
+                
+                // Navigate to the emulator page with the specific game
+                window.location.href = `./emulator/index.html?system=${system}&game=${game}`;
             });
         });
     </script>
