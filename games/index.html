@@ -3,474 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> My Game Collection</title>
+    <title>Game Collection</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #1a1a1a;
-            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
             margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1e1e1e;
             padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
         h1 {
-            text-align: center;
-            color: #00ff88;
+            margin: 0;
+            color: #0af;
         }
-        .retro-title {
-            text-align: center;
-            color: #ffd93d;
-            margin-top: 40px;
-            cursor: pointer;
-            user-select: none;
-        }
-        .games-grid {
+        .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
-            padding: 20px;
+            padding: 30px;
         }
         .game-card {
-            background: #2a2a2a;
+            background-color: #1e1e1e;
             border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            transition: transform 0.2s;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .game-card:hover {
-            transform: scale(1.05);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
-        .game-card h2 {
-            margin-top: 0;
-            color: #44ff88;
+        .game-icon {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #252525;
+            font-size: 4rem;
         }
-        .game-card a {
-            text-decoration: none;
-            color: white;
+        .game-info {
+            padding: 15px;
+        }
+        .game-title {
+            margin: 0 0 10px 0;
+            color: #0af;
+        }
+        .game-description {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        .play-button {
             display: block;
+            width: 100%;
             padding: 10px;
-            background: #00ff88;
-            border-radius: 5px;
             margin-top: 15px;
+            border: none;
+            background-color: #0088ff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
         }
-        .game-card a:hover {
-            background: #00cc66;
+        .play-button:hover {
+            background-color: #0066cc;
         }
-        #emulator-modal {
-            display: none;
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #1e1e1e;
+            font-size: 0.8rem;
+            color: #777;
+        }
+        
+        /* Password modal */
+        .password-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .modal-content {
-            background-color: #2a2a2a;
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 800px;
-            position: relative;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            cursor: pointer;
-            color: white;
-        }
-        .rom-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .rom-card {
-            background: #3a3a3a;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .rom-card:hover {
-            background: #4a4a4a;
-        }
-        .tab-container {
             display: flex;
-            margin-top: 20px;
-            border-bottom: 2px solid #3a3a3a;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
         }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #3a3a3a;
-            margin-right: 5px;
-            border-radius: 5px 5px 0 0;
-        }
-        .tab.active {
-            background: #00ff88;
-            color: black;
-            font-weight: bold;
-        }
-        .tab-content {
-            display: none;
-            margin-top: 20px;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .pokemon-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-        }
-        .pokemon-card {
-            background: #3a3a3a;
-            padding: 10px;
-            border-radius: 5px;
+        
+        .password-container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 400px;
             text-align: center;
-            cursor: pointer;
-            transition: background 0.2s;
         }
-        .pokemon-card:hover {
-            background: #4a4a4a;
+        
+        .password-container h2 {
+            color: #0af;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .password-container input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #333;
+            background-color: #252525;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        .password-container button {
+            background-color: #0088ff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .password-container button:hover {
+            background-color: #0066cc;
+        }
+        
+        .error-message {
+            color: #ff3333;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Game Collection</h1>
-    <div class="games-grid">
-        <div class="game-card">
-            <h2>Tea Simulator</h2>
-            <p>Grow tea and collect rare cats</p>
-            <a href="./tea_sim/tea_sim.html">Play Tea Simulator</a>
-        </div>
-        <div class="game-card">
-            <h2>Tea Simulator (Kaboom)</h2>
-            <p>Modern version with improved graphics and mechanics</p>
-            <a href="./tea_sim_kaboom/index.html">Play Tea Simulator Kaboom</a>
-        </div>
-        <div class="game-card">
-            <h2>Tea Simulator (Three.js)</h2>
-            <p>3D version with beautiful graphics and animations</p>
-            <a href="./tea_sim_three/index.html">Play Tea Simulator 3D</a>
-        </div>
-        <div class="game-card">
-            <h2>3D FPS Shooter</h2>
-            <p>First-person shooter with enemies and wave-based combat</p>
-            <a href="./fps_shooter/index.html">Play FPS Shooter</a>
-        </div>
-        <div class="game-card">
-            <h2>Tetris</h2>
-            <p>Classic block-stacking puzzle game</p>
-            <a href="./tetris.html">Play Tetris</a>
-        </div>
-        <div class="game-card">
-            <h2>Snake</h2>
-            <p>Classic snake game with modern twist</p>
-            <a href="./snake.html">Play Snake</a>
-        </div>
-        <div class="game-card">
-            <h2>AI Tic-Tac-Toe</h2>
-            <p>Challenge an unbeatable AI opponent</p>
-            <a href="./tictactoe.html">Play Tic-Tac-Toe</a>
-        </div>
-        <div class="game-card">
-            <h2>Blackjack</h2>
-            <p>Classic card game against the dealer</p>
-            <a href="./blackjack.html">Play Blackjack</a>
-        </div>
-        <div class="game-card">
-            <h2>Uno</h2>
-            <p>Classic card game with 3 AI players</p>
-            <a href="./uno/uno.html">Play Uno</a>
-        </div>
-        <div class="game-card">
-            <h2>Street Fighter Online</h2>
-            <p>1v1 online fighting game with emoji fighters</p>
-            <a href="./street_fighter/index.html">Play Street Fighter</a>
-        </div>
-        <div class="game-card">
-            <h2>Clicker Game</h2>
-            <p>Simple clicker game to test your reflexes</p>
-            <a href="./clicker.html">Play Clicker Game</a>
-        </div>
-        <div class="game-card">
-            <h2>Aim Trainer</h2>
-            <p>Test your aiming skills with various weapons</p>
-            <a href="./aim_trainer.html">Play Aim Trainer</a>
-        </div>
-        <div class="game-card">
-            <h2>Indiana Jones FP Maze</h2>
-            <p>First-person maze with boulders and monsters</p>
-            <a href="./maze_fp_indy/index.html">Play Indy Maze</a>
-        </div>
-    </div>
-    <h1 id="retro-title" class="retro-title">Retro Games</h1>
-    <div class="games-grid">
-        <div class="game-card">
-            <h2>Tetris 3D</h2>
-            <p>Stylish 3D Tetris with modern effects</p>
-            <a href="./tetris3d/index.html">Play Tetris 3D</a>
-        </div>
-        <div class="game-card">
-            <h2>Uno</h2>
-            <p>Classic card game with 3 AI players</p>
-            <a href="./uno/uno.html">Play Uno</a>
-        </div>
-        <div class="game-card">
-            <h2>Minesweeper</h2>
-            <p>Classic minesweeper with multiple levels</p>
-            <a href="./minesweeper/index.html">Play Minesweeper</a>
-        </div>
-        <div class="game-card">
-            <h2>Clicker Game</h2>
-            <p>Simple clicker game to test your reflexes</p>
-            <a href="./clicker.html">Play Clicker Game</a>
-        </div>
-        <div class="game-card">
-            <h2>Pokémon Emerald</h2>
-            <p>GBA classic using EmulatorJS</p>
-            <a href="./pokemon_emulator/index.html">Play Pokémon</a>
-        </div>
-        <div class="game-card">
-            <h2>Street Fighter II</h2>
-            <p>Legendary SNES fighting game</p>
-            <a href="./emulator/index.html?system=snes&game=street-fighter-ii">Play Street Fighter II</a>
+    <div id="password-modal" class="password-modal">
+        <div class="password-container">
+            <h2>Enter Password</h2>
+            <p>Please enter the password to access the games collection.</p>
+            <div id="error-message" class="error-message">Incorrect password. Please try again.</div>
+            <input type="password" id="password-input" placeholder="Enter password">
+            <button id="submit-password">Submit</button>
         </div>
     </div>
 
-    <!-- EmulatorJS Secret Modal -->
-    <div id="emulator-modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2 style="color: #00ff88; text-align: center;">Secret Emulator Hub</h2>
-            <p style="text-align: center;">Select a system or game collection</p>
-            
-            <div class="tab-container">
-                <div class="tab active" data-tab="systems">Systems</div>
-                <div class="tab" data-tab="pokemon">Pokémon Games</div>
-                <div class="tab" data-tab="street-fighter">Street Fighter</div>
-            </div>
-            
-            <div id="systems-tab" class="tab-content active">
-                <div class="rom-selector">
-                    <div class="rom-card" data-system="nes">
-                        <h3>Nintendo (NES)</h3>
-                        <p>Classic 8-bit games</p>
-                    </div>
-                    <div class="rom-card" data-system="snes">
-                        <h3>Super Nintendo (SNES)</h3>
-                        <p>16-bit classics</p>
-                    </div>
-                    <div class="rom-card" data-system="gba">
-                        <h3>Game Boy Advance</h3>
-                        <p>Handheld favorites</p>
-                    </div>
-                    <div class="rom-card" data-system="n64">
-                        <h3>Nintendo 64</h3>
-                        <p>3D Nintendo games</p>
-                    </div>
-                    <div class="rom-card" data-system="genesis">
-                        <h3>Sega Genesis</h3>
-                        <p>16-bit Sega games</p>
-                    </div>
-                    <div class="rom-card" data-system="arcade">
-                        <h3>Arcade Games</h3>
-                        <p>Classic arcade hits</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="pokemon-tab" class="tab-content">
-                <div class="pokemon-list">
-                    <div class="pokemon-card" data-game="pokemon-red">
-                        <h3>Pokémon Red</h3>
-                        <p>GameBoy (1996)</p>
-                        <span style="font-size:24px;">🔴</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-blue">
-                        <h3>Pokémon Blue</h3>
-                        <p>GameBoy (1996)</p>
-                        <span style="font-size:24px;">🔵</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-yellow">
-                        <h3>Pokémon Yellow</h3>
-                        <p>GameBoy (1998)</p>
-                        <span style="font-size:24px;">💛</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-gold">
-                        <h3>Pokémon Gold</h3>
-                        <p>GameBoy Color (1999)</p>
-                        <span style="font-size:24px;">✨</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-silver">
-                        <h3>Pokémon Silver</h3>
-                        <p>GameBoy Color (1999)</p>
-                        <span style="font-size:24px;">⚪</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-crystal">
-                        <h3>Pokémon Crystal</h3>
-                        <p>GameBoy Color (2000)</p>
-                        <span style="font-size:24px;">💎</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-ruby">
-                        <h3>Pokémon Ruby</h3>
-                        <p>GameBoy Advance (2002)</p>
-                        <span style="font-size:24px;">❤️</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-sapphire">
-                        <h3>Pokémon Sapphire</h3>
-                        <p>GameBoy Advance (2002)</p>
-                        <span style="font-size:24px;">💙</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-emerald">
-                        <h3>Pokémon Emerald</h3>
-                        <p>GameBoy Advance (2004)</p>
-                        <span style="font-size:24px;">💚</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-firered">
-                        <h3>Pokémon FireRed</h3>
-                        <p>GameBoy Advance (2004)</p>
-                        <span style="font-size:24px;">🔥</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-leafgreen">
-                        <h3>Pokémon LeafGreen</h3>
-                        <p>GameBoy Advance (2004)</p>
-                        <span style="font-size:24px;">🍃</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-diamond">
-                        <h3>Pokémon Diamond</h3>
-                        <p>Nintendo DS (2006)</p>
-                        <span style="font-size:24px;">💠</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-pearl">
-                        <h3>Pokémon Pearl</h3>
-                        <p>Nintendo DS (2006)</p>
-                        <span style="font-size:24px;">🔘</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-platinum">
-                        <h3>Pokémon Platinum</h3>
-                        <p>Nintendo DS (2008)</p>
-                        <span style="font-size:24px;">⚪</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-heartgold">
-                        <h3>Pokémon HeartGold</h3>
-                        <p>Nintendo DS (2009)</p>
-                        <span style="font-size:24px;">💛</span>
-                    </div>
-                    <div class="pokemon-card" data-game="pokemon-soulsilver">
-                        <h3>Pokémon SoulSilver</h3>
-                        <p>Nintendo DS (2009)</p>
-                        <span style="font-size:24px;">💙</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="street-fighter-tab" class="tab-content">
-                <div class="rom-selector">
-                    <div class="rom-card" data-system="snes" data-game="street-fighter-ii">
-                        <h3>Street Fighter II: The World Warrior</h3>
-                        <p>SNES (1992)</p>
-                        <span style="font-size:24px;">👊</span>
-                    </div>
-                </div>
+    <header>
+        <h1>Game Collection</h1>
+    </header>
+
+    <div class="game-grid">
+        <div class="game-card">
+            <div class="game-icon">🎮</div>
+            <div class="game-info">
+                <h2 class="game-title">Tetris</h2>
+                <p class="game-description">Classic block stacking game. Arrange falling blocks to create complete lines.</p>
+                <a href="tetris/index.html" class="play-button">PLAY</a>
             </div>
         </div>
+        
+        <div class="game-card">
+            <div class="game-icon">🎲</div>
+            <div class="game-info">
+                <h2 class="game-title">Retro Emulator</h2>
+                <p class="game-description">Play classic retro games from Nintendo, Super Nintendo, and Game Boy Advance systems.</p>
+                <p style="color: #0088ff; font-size: 0.8rem; margin-top: 5px;">Powered by EmulatorJS.org | All ROMs pre-downloaded</p>
+                <a href="emulator/index.html" class="play-button">PLAY</a>
+            </div>
+        </div>
+        
+        <!-- More games will be added here -->
     </div>
 
+    <footer>
+        <p>Game Collection &copy; 2025. All games are for entertainment purposes only.</p>
+    </footer>
+    
     <script>
-        // Secret EmulatorJS functionality
-        document.getElementById('retro-title').addEventListener('click', function() {
-            document.getElementById('emulator-modal').style.display = 'flex';
-        });
-
-        // Close the modal when clicking the X
-        document.querySelector('.close-btn').addEventListener('click', function() {
-            document.getElementById('emulator-modal').style.display = 'none';
-        });
-
-        // Close the modal when clicking outside of it
-        window.addEventListener('click', function(event) {
-            const modal = document.getElementById('emulator-modal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
+        // Password protection
+        document.addEventListener('DOMContentLoaded', function() {
+            const correctPassword = "password";
+            const passwordModal = document.getElementById('password-modal');
+            const passwordInput = document.getElementById('password-input');
+            const submitBtn = document.getElementById('submit-password');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Check if user has already entered correct password in this session
+            if (sessionStorage.getItem('gameAuthPass') === 'true') {
+                passwordModal.classList.add('hidden');
             }
-        });
-
-        // Tab switching functionality
-        const tabs = document.querySelectorAll('.tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Remove active class from all tabs
-                tabs.forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
-                this.classList.add('active');
-                
-                // Hide all tab content
-                const tabContents = document.querySelectorAll('.tab-content');
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Show the content for the active tab
-                const tabName = this.getAttribute('data-tab');
-                document.getElementById(tabName + '-tab').classList.add('active');
+            
+            submitBtn.addEventListener('click', checkPassword);
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
             });
-        });
-
-        // Handle system selection
-        const romCards = document.querySelectorAll('#systems-tab .rom-card');
-        romCards.forEach(card => {
-            card.addEventListener('click', function() {
-                const system = this.getAttribute('data-system');
-                // Navigate to the emulator page
-                window.location.href = `./emulator/index.html?system=${system}`;
+            
+            function checkPassword() {
+                if (passwordInput.value === correctPassword) {
+                    // Password correct
+                    sessionStorage.setItem('gameAuthPass', 'true');
+                    passwordModal.classList.add('hidden');
+                    
+                    // Easter egg for entering correct password
+                    const easterEgg = document.createElement('div');
+                    easterEgg.textContent = '🎉 Welcome to the secret game collection! 🎉';
+                    easterEgg.style.color = '#0af';
+                    easterEgg.style.textAlign = 'center';
+                    easterEgg.style.padding = '10px';
+                    easterEgg.style.fontWeight = 'bold';
+                    document.querySelector('header').appendChild(easterEgg);
+                    
+                    setTimeout(() => {
+                        easterEgg.style.transition = 'opacity 1s';
+                        easterEgg.style.opacity = '0';
+                    }, 3000);
+                } else {
+                    // Password incorrect
+                    errorMessage.style.display = 'block';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                    
+                    // Shake animation for wrong password
+                    passwordInput.style.animation = 'shake 0.5s';
+                    setTimeout(() => {
+                        passwordInput.style.animation = '';
+                    }, 500);
+                }
+            }
+            
+            // Add a hidden Easter egg feature
+            document.querySelector('.game-icon').addEventListener('click', function() {
+                const emojis = ['🎮', '🎯', '🎲', '🎪', '🎭', '🎨', '🎤', '🎧', '🎹', '🎺', '🎻'];
+                let currentIndex = emojis.indexOf(this.textContent);
+                currentIndex = (currentIndex + 1) % emojis.length;
+                this.textContent = emojis[currentIndex];
+                
+                // If reached the last emoji, reveal a special message
+                if (currentIndex === emojis.length - 1) {
+                    alert('You found a secret! Try the Konami code on the Tetris game!');
+                }
             });
         });
         
-        // Handle Street Fighter selection
-        const sfCards = document.querySelectorAll('#street-fighter-tab .rom-card');
-        sfCards.forEach(card => {
-            card.addEventListener('click', function() {
-                const system = this.getAttribute('data-system');
-                const game = this.getAttribute('data-game');
-                // Navigate to the emulator page with both parameters
-                window.location.href = `./emulator/index.html?system=${system}&game=${game}`;
-            });
-        });
-
-        // Handle Pokémon game selection
-        const pokemonCards = document.querySelectorAll('.pokemon-card');
-        pokemonCards.forEach(card => {
-            card.addEventListener('click', function() {
-                const game = this.getAttribute('data-game');
-                
-                // Determine system based on the game
-                let system = 'gb'; // Default to Game Boy
-                if (game.includes('ruby') || game.includes('sapphire') || 
-                    game.includes('emerald') || game.includes('firered') || 
-                    game.includes('leafgreen')) {
-                    system = 'gba'; // Game Boy Advance
-                } else if (game.includes('diamond') || game.includes('pearl') || 
-                           game.includes('platinum') || game.includes('heartgold') || 
-                           game.includes('soulsilver')) {
-                    system = 'nds'; // Nintendo DS
-                } else if (game.includes('gold') || game.includes('silver') || 
-                           game.includes('crystal')) {
-                    system = 'gbc'; // Game Boy Color
-                }
-                
-                // Navigate to the emulator page with the specific game
-                window.location.href = `./emulator/index.html?system=${system}&game=${game}`;
-            });
-        });
+        // Add keyframe animation for shake effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                50% { transform: translateX(10px); }
+                75% { transform: translateX(-10px); }
+                100% { transform: translateX(0); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
-</html>
+</html> 

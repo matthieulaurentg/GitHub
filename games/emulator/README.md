@@ -1,57 +1,60 @@
-# Secret Emulator Hub
+# RetroGame Emulator
 
-This is a hidden feature of the Game Collection that lets you play classic games right in your browser. The emulator is powered by [EmulatorJS](https://emulatorjs.org/) and features a collection of Pokemon games and other classic console systems.
+This is a web-based emulator for retro gaming systems, powered by [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS).
 
-## How to Access
+## Setup
 
-1. Go to the main Game Collection page
-2. Click on the "Retro Games" heading (it's a secret button!)
-3. The emulator modal will appear with systems and Pokemon options
+This emulator is configured to use the EmulatorJS CDN for all core emulator files, so you don't need to download or install them manually. However, **you do need to provide your own ROM files** for legal reasons.
+
+### ROM Files
+
+Place your ROM files in the following locations:
+
+```
+games/emulator/roms/gba/pokemon-emerald.gba
+games/emulator/roms/gba/mario-advance4.gba
+games/emulator/roms/gba/zelda-minish-cap.gba
+
+games/emulator/roms/nes/super-mario-bros.nes
+games/emulator/roms/nes/zelda.nes
+games/emulator/roms/nes/metroid.nes
+
+games/emulator/roms/snes/super-mario-world.sfc
+games/emulator/roms/snes/zelda-link-to-the-past.sfc
+games/emulator/roms/snes/street-fighter-2.sfc
+```
+
+## Legal Notice
+
+It's important to note that you should only use ROM files for games that you legally own. The emulator itself is legal, but distributing ROMs or downloading ROMs for games you don't own may violate copyright laws.
 
 ## Features
 
-- No fake downloads - games load instantly
-- Support for multiple systems (GB, GBC, GBA, NDS, NES, SNES, Genesis, N64)
-- Full collection of classic Pokemon games
-- Upload your own ROMs feature for true gaming freedom
-- Clean modern UI that matches the Game Collection site
+- Supports Game Boy Advance, NES, and SNES games
+- Save states functionality
+- Mobile-friendly touch controls
+- Keyboard support for desktop play
+- Special cheat codes (activated with Konami Code)
 
-## Technical Details
+## Konami Code
 
-This emulator doesn't actually include any copyrighted ROMs. Instead, it generates minimal ROM structures dynamically that:
-
-1. Are valid enough to be loaded by the EmulatorJS core
-2. Display a message prompting users to upload their own ROMs
-3. Have all the proper headers needed for the system
-
-This approach avoids copyright issues while still providing a seamless experience.
-
-## Adding Your Own ROMs
-
-To play with your own ROMs:
-
-1. Select a system or Pokemon game in the emulator
-2. When the demo ROM loads, use the ROM uploader at the bottom
-3. Drop your own ROM file onto the drop zone
-4. The emulator will verify it's the right format and load it
-
-## Implementation
-
-The emulator uses these key components:
-
-- `stub-rom-content.js` - Creates valid ROM structures for various systems
-- `rom-generator.js` - Utility for generating downloadable ROM files
-- Direct Blob URL creation for loading ROMs without server requests
-- EmulatorJS for the actual game emulation
+Find the hidden easter egg by entering the Konami Code on the emulator page:
+↑ ↑ ↓ ↓ ← → ← → B A
 
 ## Supported Systems
 
-- Game Boy (GB)
-- Game Boy Color (GBC) 
-- Game Boy Advance (GBA)
-- Nintendo DS (NDS)
-- Nintendo Entertainment System (NES)
-- Super Nintendo (SNES)
-- Sega Genesis / Mega Drive
-- Nintendo 64 (N64)
-- Arcade games 
+The emulator currently supports these systems:
+
+1. **Game Boy Advance (GBA)**
+   - File extension: `.gba`
+
+2. **Nintendo Entertainment System (NES)**
+   - File extension: `.nes`
+
+3. **Super Nintendo Entertainment System (SNES)**
+   - File extension: `.sfc`
+
+## Credits
+
+- [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS) - The core emulation technology
+- Game artwork and descriptions are used for educational purposes only 

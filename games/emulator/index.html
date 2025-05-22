@@ -3,1049 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secret EmulatorJS Hub</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #1a1a1a;
-            color: white;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        header {
-            background: #2a2a2a;
-            padding: 15px;
-            text-align: center;
-            border-bottom: 2px solid #00ff88;
-        }
-        h1 {
-            color: #00ff88;
-            margin: 0;
-        }
-        .back-button {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            padding: 5px 15px;
-            background: #00ff88;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .back-button:hover {
-            background: #00cc66;
-        }
-        main {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        #emulator {
-            width: 100%;
-            max-width: 800px;
-            height: 600px;
-            background: #2a2a2a;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .rom-selector {
-            width: 100%;
-            max-width: 800px;
-            margin-top: 20px;
-            background: #2a2a2a;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        .rom-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .rom-item {
-            background: #3a3a3a;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        .rom-item:hover {
-            background: #4a4a4a;
-        }
-        .loading-message {
-            text-align: center;
-            margin: 20px 0;
-        }
-        #drop-area {
-            border: 3px dashed #00ff88;
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 800px;
-            background-color: rgba(0, 255, 136, 0.05);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-        #drop-area.highlight {
-            border-color: #ffffff;
-            background-color: rgba(0, 255, 136, 0.2);
-            transform: scale(1.02);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
-        }
-        #drop-area::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
-            transition: 0.5s;
-            pointer-events: none;
-        }
-        #drop-area.dragging::before {
-            left: 100%;
-        }
-        .drag-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-            opacity: 0.8;
-            transition: all 0.3s ease;
-        }
-        #drop-area:hover .drag-icon {
-            transform: translateY(-5px);
-            opacity: 1;
-        }
-        #drop-area.dragging .drag-icon {
-            transform: scale(1.2);
-        }
-        .upload-instruction {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: rgba(255, 255, 136, 0.1);
-            border-radius: 5px;
-            font-weight: bold;
-            color: #ffff88;
-            transition: all 0.3s ease;
-        }
-        #drop-area.highlight .upload-instruction {
-            background-color: rgba(255, 255, 136, 0.25);
-        }
-        footer {
-            background: #2a2a2a;
-            padding: 10px;
-            text-align: center;
-            border-top: 2px solid #00ff88;
-        }
-        .game-info {
-            background: #2a2a2a;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            align-items: center;
-        }
-        .game-icon {
-            font-size: 48px;
-            margin-right: 20px;
-        }
-        .game-details h2 {
-            margin-top: 0;
-            color: #00ff88;
-        }
-        .game-details p {
-            margin: 5px 0;
-        }
-        .info-text {
-            color: #ffd700;
-            margin-top: 10px;
-            font-style: italic;
-        }
-        .play-button {
-            display: inline-block;
-            background: #00ff88;
-            color: black;
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-top: 15px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .play-button:hover {
-            background: #00cc66;
-        }
-        .error-message {
-            background: rgba(255, 0, 0, 0.2);
-            border: 1px solid #ff5555;
-            color: #ffaaaa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            text-align: center;
-            display: none;
-            width: 100%;
-            max-width: 800px;
-        }
-        .upload-option {
-            margin-top: 20px;
-            color: #aaaaaa;
-            text-align: center;
-            display: none;
-        }
-        .download-progress {
-            background: #2a2a2a;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 800px;
-            display: none;
-        }
-        .progress-bar {
-            background: #3a3a3a;
-            border-radius: 5px;
-            height: 20px;
-            width: 100%;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            background: #00ff88;
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s;
-        }
-        .support-note {
-            display: block;
-            margin-top: 15px;
-            font-size: 14px;
-            color: #aaaaaa;
-        }
-        .system-chip {
-            display: inline-block;
-            margin: 5px;
-            padding: 5px 10px;
-            background: #3a3a3a;
-            border-radius: 15px;
-            font-size: 12px;
-        }
-        #drop-area.success {
-            border-color: #00ff88;
-            background-color: rgba(0, 255, 136, 0.15);
-            transform: scale(1.03);
-            box-shadow: 0 0 25px rgba(0, 255, 136, 0.6);
-        }
-        
-        @keyframes success-pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-        
-        #drop-area.success .drag-icon {
-            animation: success-pulse 0.6s ease-in-out;
-            color: #00ff88;
-        }
-        .drag-guide {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        
-        .drag-guide.active {
-            display: flex;
-            animation: fadeIn 0.5s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .guide-content {
-            background-color: #2a2a2a;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 600px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .guide-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #aaa;
-        }
-        
-        .guide-close:hover {
-            color: white;
-        }
-        
-        .drag-arrow {
-            font-size: 40px;
-            margin: 20px 0;
-            animation: moveDown 1.5s infinite;
-        }
-        
-        @keyframes moveDown {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(20px); }
-        }
-        
-        .demo-rom {
-            display: inline-block;
-            background-color: #3a3a3a;
-            padding: 15px 25px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-weight: bold;
-            border: 2px solid #00ff88;
-            cursor: grab;
-        }
-    </style>
+    <title>Retro Game Emulator</title>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <header>
-        <a href="../index.html" class="back-button">Back</a>
-        <h1 id="system-title">Secret EmulatorJS Hub</h1>
-    </header>
-    
-    <main>
-        <div id="game-info" class="game-info" style="display: none;">
-            <div id="game-icon" class="game-icon"></div>
-            <div class="game-details">
-                <h2 id="game-title">Game Title</h2>
-                <p id="game-description">Game Description</p>
-                <button id="play-button" class="play-button">Play Now</button>
+    <div class="game-container">
+        <div class="game-header">
+            <a href="../index.html" class="back-button">← Back</a>
+            <h1>Retro Game Emulator</h1>
+            <div class="controls-info">
+                <span>Powered by <a href="https://emulatorjs.org/" target="_blank" style="color: #0088ff;">EmulatorJS.org</a> | All ROMs Pre-Downloaded</span>
             </div>
         </div>
         
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button id="home-upload-button" style="background: #ff8800; color: black; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
-                📂 Upload Your Own ROM
-            </button>
-            <button id="demo-drag-button" style="background: #8855ff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-left: 10px;">
-                🎮 Demo Drag Animation
-            </button>
-        </div>
-        
-        <div id="loading-message" class="loading-message">
-            <h2>Loading EmulatorJS...</h2>
-            <p>Please wait while we prepare your gaming experience</p>
-        </div>
-        
-        <div id="download-progress" class="download-progress">
-            <h3>Downloading Game...</h3>
-            <p id="download-status">Starting download...</p>
-            <div class="progress-bar">
-                <div id="progress-fill" class="progress-fill"></div>
+        <div class="emulator-container">
+            <div class="game-list">
+                <h2>Available Games</h2>
+                <div class="system-section">
+                    <h3>Game Boy Advance</h3>
+                    <ul>
+                        <li><a href="play.html?system=gba&game=pokemon-emerald" class="game-link">Pokémon Emerald <span class="rom-ready"></span></a></li>
+                        <li><a href="play.html?system=gba&game=mario-advance4" class="game-link">Super Mario Advance 4 <span class="rom-ready"></span></a></li>
+                        <li><a href="play.html?system=gba&game=zelda-minish-cap" class="game-link">The Legend of Zelda: The Minish Cap <span class="rom-ready"></span></a></li>
+                    </ul>
+                </div>
+                
+                <div class="system-section">
+                    <h3>Nintendo Entertainment System (NES)</h3>
+                    <ul>
+                        <li><a href="play.html?system=nes&game=super-mario-bros" class="game-link">Super Mario Bros <span class="rom-ready"></span></a></li>
+                        <li><a href="play.html?system=nes&game=zelda" class="game-link">The Legend of Zelda <span class="rom-ready"></span></a></li>
+                        <li><a href="play.html?system=nes&game=metroid" class="game-link">Metroid <span class="rom-ready"></span></a></li>
+                    </ul>
+                </div>
+                
+                <div class="system-section">
+                    <h3>Super Nintendo (SNES)</h3>
+                    <ul>
+                        <li><a href="play.html?system=snes&game=super-mario-world" class="game-link">Super Mario World <span class="rom-ready"></span></a></li>
+                        <li><a href="play.html?system=snes&game=zelda-link-to-the-past" class="game-link">The Legend of Zelda: A Link to the Past <span class="rom-ready"></span></a></li>
+                        <li><a href="play.html?system=snes&game=street-fighter-2" class="game-link">Street Fighter II Turbo <span class="rom-ready"></span></a></li>
+                    </ul>
+                </div>
             </div>
-        </div>
-        
-        <div id="error-message" class="error-message">
-            <h3>Oops! Something went wrong</h3>
-            <p>We couldn't load the ROM file.</p>
-            <p>Please try again or use your own ROM file.</p>
-        </div>
-        
-        <div id="upload-option" class="upload-option">
-            <p>Want to try with your own ROM? Drop it below:</p>
-        </div>
-        
-        <div id="emulator"></div>
-        
-        <div id="drop-area">
-            <div class="drag-icon">📥</div>
-            <p class="upload-instruction">Drag and drop your ROM file here</p>
-            <button id="upload-button" style="background: #00ff88; color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 10px 0; font-weight: bold;">
-                Select ROM File
-            </button>
-            <div>
-                <span class="system-chip">Game Boy (.gb)</span>
-                <span class="system-chip">GBC (.gbc)</span>
-                <span class="system-chip">GBA (.gba)</span>
-                <span class="system-chip">SNES (.sfc/.smc)</span>
-                <span class="system-chip">NES (.nes)</span>
-                <span class="system-chip">Genesis (.md/.gen)</span>
+            
+            <div class="instructions">
+                <h2>How to Play</h2>
+                <p>1. Click on any game title from the list to launch the emulator.</p>
+                <p>2. The controls will be shown on the emulator screen.</p>
+                <p>3. For mobile devices, touch controls will appear automatically.</p>
+                <p>4. You can save your progress using the save state feature in the emulator.</p>
+                <p>5. Game saves are stored locally in your browser.</p>
+                
+                <div class="note">
+                    <p><strong>Note:</strong> All ROMs have been pre-downloaded from emulatorgames.net for educational purposes.</p>
+                    <p>The emulator will load these ROMs directly without requiring additional downloads.</p>
+                    <p>We encourage supporting the original developers by purchasing their games when available.</p>
+                </div>
+                
+                <h3>Default Keyboard Controls</h3>
+                <table class="controls-table">
+                    <tr>
+                        <th>Function</th>
+                        <th>Keyboard Key</th>
+                    </tr>
+                    <tr>
+                        <td>D-Pad Up</td>
+                        <td>Arrow Up</td>
+                    </tr>
+                    <tr>
+                        <td>D-Pad Down</td>
+                        <td>Arrow Down</td>
+                    </tr>
+                    <tr>
+                        <td>D-Pad Left</td>
+                        <td>Arrow Left</td>
+                    </tr>
+                    <tr>
+                        <td>D-Pad Right</td>
+                        <td>Arrow Right</td>
+                    </tr>
+                    <tr>
+                        <td>A Button</td>
+                        <td>X</td>
+                    </tr>
+                    <tr>
+                        <td>B Button</td>
+                        <td>Z</td>
+                    </tr>
+                    <tr>
+                        <td>Start</td>
+                        <td>Enter</td>
+                    </tr>
+                    <tr>
+                        <td>Select</td>
+                        <td>Shift</td>
+                    </tr>
+                    <tr>
+                        <td>Save State</td>
+                        <td>F2</td>
+                    </tr>
+                    <tr>
+                        <td>Load State</td>
+                        <td>F4</td>
+                    </tr>
+                    <tr>
+                        <td>Fast Forward</td>
+                        <td>Space (hold)</td>
+                    </tr>
+                    <tr>
+                        <td>Rewind</td>
+                        <td>R</td>
+                    </tr>
+                </table>
+                
+                <div class="emulator-features">
+                    <div class="feature-card">
+                        <h3>📱 Mobile Support</h3>
+                        <p>Touch controls are available on mobile devices for a great gaming experience on any device.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>💾 Game Saves</h3>
+                        <p>Your progress is automatically saved to your browser. Resume where you left off anytime.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎮 Controller Support</h3>
+                        <p>Connect a gamepad or controller for an authentic retro gaming experience.</p>
+                    </div>
+                </div>
+                
+                <div class="secret-tip" title="Click for a hint">
+                    Try pressing the Konami Code on this page for a surprise...
+                </div>
             </div>
-            <p class="support-note">All systems supported! The emulator will automatically detect your ROM type.</p>
-            <input type="file" id="file-input" accept=".gb,.gbc,.gba,.sfc,.smc,.nes,.md,.gen,.n64,.z64,.nds" hidden>
-        </div>
-    </main>
-    
-    <footer>
-        <p>Powered by EmulatorJS - <a href="https://emulatorjs.org/" style="color: #00ff88;" target="_blank">Visit EmulatorJS.org</a></p>
-    </footer>
-
-    <!-- Drag Guide Overlay -->
-    <div class="drag-guide" id="drag-guide">
-        <div class="guide-content">
-            <span class="guide-close">&times;</span>
-            <h2 style="color: #00ff88;">How to Drag & Drop ROMs</h2>
-            <p>Drag the ROM file from your computer directly into the drop zone:</p>
-            
-            <div class="demo-rom" draggable="true" id="demo-rom">Mario.gb</div>
-            
-            <div class="drag-arrow">👇</div>
-            
-            <p style="background: rgba(0, 255, 136, 0.1); padding: 15px; border-radius: 10px;">
-                <strong>Drop Zone</strong><br>
-                Drag and drop here to play your games
-            </p>
-            
-            <p style="margin-top: 20px; color: #aaa; font-size: 14px;">
-                Works with Game Boy, SNES, NES, Genesis and more!
-            </p>
         </div>
     </div>
-
-    <script type="module">
-        import * as romGenerator from './roms/stub-rom-content.js';
-        
-        // Get system and game from URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const system = urlParams.get('system') || 'nes';
-        const game = urlParams.get('game');
-        
-        // Define system titles and file extensions
-        const systemConfig = {
-            'nes': {
-                title: 'Nintendo Entertainment System (NES)',
-                extensions: ['.nes'],
-                core: 'nes'
-            },
-            'snes': {
-                title: 'Super Nintendo Entertainment System (SNES)',
-                extensions: ['.sfc', '.smc'],
-                core: 'snes'
-            },
-            'gba': {
-                title: 'Game Boy Advance',
-                extensions: ['.gba'],
-                core: 'gba'
-            },
-            'gbc': {
-                title: 'Game Boy Color',
-                extensions: ['.gbc'],
-                core: 'gb'
-            },
-            'gb': {
-                title: 'Game Boy',
-                extensions: ['.gb'],
-                core: 'gb'
-            },
-            'nds': {
-                title: 'Nintendo DS',
-                extensions: ['.nds'],
-                core: 'nds'
-            },
-            'n64': {
-                title: 'Nintendo 64',
-                extensions: ['.n64', '.z64'],
-                core: 'n64'
-            },
-            'genesis': {
-                title: 'Sega Genesis / Mega Drive',
-                extensions: ['.md', '.gen', '.bin'],
-                core: 'segaMD'
-            },
-            'arcade': {
-                title: 'Arcade Games',
-                extensions: ['.zip'],
-                core: 'arcade'
-            }
-        };
-        
-        // Define Pokemon-like homebrew/demo games (legally distributable)
-        const pokemonGames = {
-            'pokemon-red': {
-                title: 'Pokémon Red Version',
-                system: 'gb',
-                year: '1996',
-                description: 'The original Red Version from the Game Boy!',
-                icon: '🔴',
-                extension: '.gb',
-                romUrl: './roms/Pokemon-Red.gb'
-            },
-            'pokemon-blue': {
-                title: 'Pokémon Blue Version',
-                system: 'gb',
-                year: '1996',
-                description: 'The original Blue Version from the Game Boy!',
-                icon: '🔵',
-                extension: '.gb',
-                romUrl: './roms/Pokemon-Blue.gb'
-            },
-            'pokemon-yellow': {
-                title: 'Pokémon Yellow Version',
-                system: 'gb',
-                year: '1998',
-                description: 'Special Pikachu Edition for the Game Boy!',
-                icon: '💛',
-                extension: '.gb',
-                romUrl: './roms/Pokemon-Yellow.gb'
-            },
-            'pokemon-gold': {
-                title: 'Pokémon Gold Version',
-                system: 'gbc',
-                year: '1999',
-                description: 'The Gold adventure in the Johto region!',
-                icon: '✨',
-                extension: '.gbc',
-                romUrl: './roms/Pokemon-Gold.gbc'
-            },
-            'pokemon-silver': {
-                title: 'Pokémon Silver Version',
-                system: 'gbc',
-                year: '1999',
-                description: 'The Silver adventure in the Johto region!',
-                icon: '⚪',
-                extension: '.gbc',
-                romUrl: './roms/Pokemon-Silver.gbc'
-            },
-            'pokemon-crystal': {
-                title: 'Pokémon Crystal Version',
-                system: 'gbc',
-                year: '2000',
-                description: 'The enhanced Crystal version with animations!',
-                icon: '💎',
-                extension: '.gbc',
-                romUrl: './roms/Pokemon-Crystal.gbc'
-            },
-            'pokemon-ruby': {
-                title: 'Pokémon Ruby Version',
-                system: 'gba',
-                year: '2002',
-                description: 'The Ruby adventure in the Hoenn region!',
-                icon: '❤️',
-                extension: '.gba',
-                romUrl: './roms/Pokemon-Ruby.gba'
-            },
-            'pokemon-sapphire': {
-                title: 'Pokémon Sapphire Version',
-                system: 'gba',
-                year: '2002',
-                description: 'The Sapphire adventure in the Hoenn region!',
-                icon: '💙',
-                extension: '.gba',
-                romUrl: './roms/Pokemon-Sapphire.gba'
-            },
-            'pokemon-emerald': {
-                title: 'Pokémon Emerald Version',
-                system: 'gba',
-                year: '2004',
-                description: 'The ultimate Hoenn adventure with Battle Frontier!',
-                icon: '💚',
-                extension: '.gba',
-                romUrl: './roms/Pokemon-Emerald.gba'
-            },
-            'pokemon-firered': {
-                title: 'Pokémon FireRed Version',
-                system: 'gba',
-                year: '2004',
-                description: 'The remake of the original Red version!',
-                icon: '🔥',
-                extension: '.gba',
-                romUrl: './roms/Pokemon-FireRed.gba'
-            },
-            'pokemon-leafgreen': {
-                title: 'Pokémon LeafGreen Version',
-                system: 'gba',
-                year: '2004',
-                description: 'The remake of the original Green version!',
-                icon: '🍃',
-                extension: '.gba',
-                romUrl: './roms/Pokemon-LeafGreen.gba'
-            },
-            'pokemon-diamond': {
-                title: 'Pokémon Diamond Version',
-                system: 'nds',
-                year: '2006',
-                description: 'The Diamond adventure in the Sinnoh region!',
-                icon: '💠',
-                extension: '.nds',
-                romUrl: './roms/Pokemon-Diamond.nds'
-            },
-            'pokemon-pearl': {
-                title: 'Pokémon Pearl Version',
-                system: 'nds',
-                year: '2006',
-                description: 'The Pearl adventure in the Sinnoh region!',
-                icon: '🔘',
-                extension: '.nds',
-                romUrl: './roms/Pokemon-Pearl.nds'
-            },
-            'pokemon-platinum': {
-                title: 'Pokémon Platinum Version',
-                system: 'nds',
-                year: '2008',
-                description: 'The enhanced Platinum adventure in Sinnoh!',
-                icon: '⚪',
-                extension: '.nds',
-                romUrl: './roms/Pokemon-Platinum.nds'
-            },
-            'pokemon-heartgold': {
-                title: 'Pokémon HeartGold Version',
-                system: 'nds',
-                year: '2009',
-                description: 'The remake of Gold with amazing graphics!',
-                icon: '💛',
-                extension: '.nds',
-                romUrl: './roms/Pokemon-HeartGold.nds'
-            },
-            'pokemon-soulsilver': {
-                title: 'Pokémon SoulSilver Version',
-                system: 'nds',
-                year: '2009',
-                description: 'The remake of Silver with amazing graphics!',
-                icon: '💙',
-                extension: '.nds',
-                romUrl: './roms/Pokemon-SoulSilver.nds'
-            },
-            'street-fighter-ii': {
-                title: 'Street Fighter II: The World Warrior',
-                system: 'snes',
-                year: '1992',
-                description: 'The legendary fighting game for the SNES!',
-                icon: '👊',
-                extension: '.sfc',
-                romUrl: './roms/snes/Street-Fighter-II.sfc'
-            }
-        };
-        
-        // Alternative free ROMs to use for demo purposes
-        const freeRoms = {
-            'gb': './roms/gb-demo.gb',
-            'gbc': './roms/gbc-demo.gbc',
-            'gba': './roms/gba-demo.gba',
-            'nds': './roms/nds-demo.nds',
-            'nes': './roms/nes-demo.nes',
-            'snes': './roms/sfc-demo.sfc',
-            'genesis': './roms/genesis-demo.md',
-            'n64': './roms/n64-demo.z64'
-        };
-        
-        // Set system title
-        document.getElementById('system-title').innerText = systemConfig[system]?.title || 'Unknown System';
-        
-        // If a specific game is specified
-        if (game && pokemonGames[game]) {
-            const gameData = pokemonGames[game];
-            
-            // Show game info
-            document.getElementById('game-info').style.display = 'flex';
-            document.getElementById('game-icon').innerText = gameData.icon;
-            document.getElementById('game-title').innerText = gameData.title;
-            document.getElementById('game-description').innerText = gameData.description;
-            
-            // Hide emulator initially
-            document.getElementById('emulator').style.display = 'none';
-            
-            // Setup play button
-            document.getElementById('play-button').addEventListener('click', function() {
-                downloadAndPlayGame(game);
-            });
-        } else {
-            // Hide game info for general system use
-            document.getElementById('game-info').style.display = 'none';
-            
-            // If just a system is selected, show free ROMs for that system
-            if (system && freeRoms[system]) {
-                // Auto-start with a free ROM for the selected system
-                downloadAndPlayDemo(system);
-            }
-        }
-        
-        // Simulate downloading a game and then playing it
-        function downloadAndPlayGame(gameName) {
-            const gameData = pokemonGames[gameName];
-            
-            // Hide info and show loading message
-            document.getElementById('game-info').style.display = 'none';
-            document.getElementById('loading-message').style.display = 'block';
-            document.getElementById('drop-area').style.display = 'none';
-            
-            // Start the emulator directly
-            startEmulator(gameData);
-        }
-        
-        // Start emulator with a free demo ROM for the selected system
-        function downloadAndPlayDemo(systemName) {
-            // Show loading message
-            document.getElementById('loading-message').style.display = 'block';
-            document.getElementById('drop-area').style.display = 'none';
-            
-            // Create mock game data for the system
-            const demoGameData = {
-                title: `${systemConfig[systemName].title} Game`,
-                system: systemName,
-                romUrl: freeRoms[systemName]
-            };
-            
-            // Start the emulator directly
-            startEmulator(demoGameData);
-        }
-        
-        // Start the emulator with the specified game data
-        function startEmulator(gameData) {
-            // Show emulator and hide all other elements
-            document.getElementById('emulator').style.display = 'block';
-            document.getElementById('loading-message').style.display = 'block';
-            document.getElementById('download-progress').style.display = 'none';
-            
-            // Create EmulatorJS elements
-            const emulatorDiv = document.getElementById('emulator');
-            emulatorDiv.innerHTML = '';
-            
-            // Get the system core
-            const gameSystem = gameData.system;
-            
-            // Set page title to include game name
-            document.title = `Playing ${gameData.title} - Secret EmulatorJS Hub`;
-            
-            // Create ROM data dynamically instead of loading from URL
-            const romData = romGenerator.createRomData(gameSystem, gameData.title);
-            const romBlob = new Blob([romData], { type: 'application/octet-stream' });
-            const romUrl = URL.createObjectURL(romBlob);
-            
-            // Load EmulatorJS script
-            const script = document.createElement('script');
-            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-            
-            // Configure EmulatorJS
-            window.EJS_player = '#emulator';
-            window.EJS_gameName = gameData.title;
-            window.EJS_biosUrl = '';
-            window.EJS_gameUrl = romUrl;
-            window.EJS_core = systemConfig[gameSystem].core;
-            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-            window.EJS_startOnLoaded = true;
-            window.EJS_onGameStart = function() {
-                document.getElementById('loading-message').style.display = 'none';
-                console.log(`Game started: ${gameData.title}`);
-            };
-            
-            // Handle errors
-            window.EJS_onLoadError = function(message) {
-                console.error("Error loading ROM:", message);
-                document.getElementById('loading-message').style.display = 'none';
-                document.getElementById('error-message').style.display = 'block';
-                document.getElementById('upload-option').style.display = 'block';
-                document.getElementById('drop-area').style.display = 'block';
-                
-                // Show detailed error message
-                const errorDiv = document.createElement('div');
-                errorDiv.style.marginTop = '15px';
-                errorDiv.style.color = '#ffaaaa';
-                errorDiv.textContent = `Error details: ${message}`;
-                document.getElementById('error-message').appendChild(errorDiv);
-            };
-            
-            document.body.appendChild(script);
-            
-            // Fallback timer - if game doesn't load within 15 seconds
-            setTimeout(function() {
-                if (document.getElementById('loading-message').style.display === 'block') {
-                    document.getElementById('loading-message').style.display = 'none';
-                    document.getElementById('error-message').style.display = 'block';
-                    document.getElementById('upload-option').style.display = 'block';
-                    document.getElementById('drop-area').style.display = 'block';
-                }
-            }, 15000);
-        }
-        
-        // Handle file drop area functionality
-        const dropArea = document.getElementById('drop-area');
-        const fileInput = document.getElementById('file-input');
-        const uploadButton = document.getElementById('upload-button');
-        const homeUploadButton = document.getElementById('home-upload-button');
-        const demoDragButton = document.getElementById('demo-drag-button');
-        
-        // Demo drag animation button
-        if (demoDragButton) {
-            demoDragButton.addEventListener('click', () => {
-                const dragGuide = document.getElementById('drag-guide');
-                if (dragGuide) {
-                    dragGuide.classList.add('active');
-                }
-            });
-        }
-        
-        // Close guide when clicking X
-        const guideClose = document.querySelector('.guide-close');
-        if (guideClose) {
-            guideClose.addEventListener('click', () => {
-                const dragGuide = document.getElementById('drag-guide');
-                if (dragGuide) {
-                    dragGuide.classList.remove('active');
-                }
-            });
-        }
-        
-        // Demo ROM element
-        const demoRom = document.getElementById('demo-rom');
-        if (demoRom) {
-            demoRom.addEventListener('dragstart', (e) => {
-                // Add some visual feedback
-                setTimeout(() => {
-                    e.target.style.opacity = '0.4';
-                }, 0);
-            });
-            
-            demoRom.addEventListener('dragend', (e) => {
-                e.target.style.opacity = '1';
-                
-                // Close the guide
-                const dragGuide = document.getElementById('drag-guide');
-                if (dragGuide) {
-                    dragGuide.classList.remove('active');
-                }
-                
-                // After guide closes, run the demo
-                setTimeout(() => {
-                    // Run drag demo animation
-                    highlight({ preventDefault: () => {}, stopPropagation: () => {} });
-                    
-                    // Scroll to the drop area
-                    dropArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // After 2 seconds, simulate drop
-                    setTimeout(() => {
-                        // Simulate successful drop
-                        unhighlight({ preventDefault: () => {}, stopPropagation: () => {} });
-                        
-                        dropArea.classList.add('success');
-                        const uploadInstruction = document.querySelector('.upload-instruction');
-                        if (uploadInstruction) {
-                            uploadInstruction.textContent = 'ROM received! Loading...';
-                            uploadInstruction.style.color = '#00ff88';
-                        }
-                        
-                        const dragIcon = document.querySelector('.drag-icon');
-                        if (dragIcon) {
-                            dragIcon.innerHTML = '✅';
-                        }
-                        
-                        // Reset after animation completes
-                        setTimeout(() => {
-                            dropArea.classList.remove('success');
-                            const uploadInstruction = document.querySelector('.upload-instruction');
-                            if (uploadInstruction) {
-                                uploadInstruction.textContent = 'Drag and drop your ROM file here';
-                                uploadInstruction.style.color = '';
-                            }
-                            
-                            const dragIcon = document.querySelector('.drag-icon');
-                            if (dragIcon) {
-                                dragIcon.innerHTML = '📥';
-                            }
-                        }, 2000);
-                    }, 2000);
-                }, 500);
-            });
-        }
-        
-        // Home upload button
-        if (homeUploadButton) {
-            homeUploadButton.addEventListener('click', () => fileInput.click());
-        }
-        
-        // Click to select file via upload button
-        uploadButton.addEventListener('click', () => fileInput.click());
-        
-        // Click to select file via drop area
-        dropArea.addEventListener('click', (e) => {
-            // Only trigger file input if the click wasn't on the button
-            if (e.target !== uploadButton && !uploadButton.contains(e.target)) {
-                fileInput.click();
-            }
-        });
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-        
-        function highlight(e) {
-            dropArea.classList.add('highlight');
-            dropArea.classList.add('dragging');
-            
-            // Show a helpful message
-            const uploadInstruction = document.querySelector('.upload-instruction');
-            if (uploadInstruction) {
-                uploadInstruction.textContent = 'Yes! Drop it here...';
-            }
-            
-            // Pulse animation for the drag icon
-            const dragIcon = document.querySelector('.drag-icon');
-            if (dragIcon) {
-                dragIcon.innerHTML = '👇';
-            }
-        }
-        
-        function unhighlight(e) {
-            dropArea.classList.remove('highlight');
-            dropArea.classList.remove('dragging');
-            
-            // Reset the message
-            const uploadInstruction = document.querySelector('.upload-instruction');
-            if (uploadInstruction) {
-                uploadInstruction.textContent = 'Drag and drop your ROM file here';
-            }
-            
-            // Reset the icon
-            const dragIcon = document.querySelector('.drag-icon');
-            if (dragIcon) {
-                dragIcon.innerHTML = '📥';
-            }
-        }
-        
-        dropArea.addEventListener('drop', handleDrop, false);
-        fileInput.addEventListener('change', handleFiles, false);
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            
-            if (files.length) {
-                // Show success animation before processing
-                dropArea.classList.add('success');
-                const uploadInstruction = document.querySelector('.upload-instruction');
-                if (uploadInstruction) {
-                    uploadInstruction.textContent = 'ROM received! Loading...';
-                    uploadInstruction.style.color = '#00ff88';
-                }
-                
-                const dragIcon = document.querySelector('.drag-icon');
-                if (dragIcon) {
-                    dragIcon.innerHTML = '✅';
-                }
-                
-                // Process the file after a short delay for visual feedback
-                setTimeout(() => {
-                    handleFiles({ target: { files } });
-                }, 700);
-            }
-        }
-        
-        function handleFiles(e) {
-            const files = e.target.files;
-            if (files.length) {
-                loadRom(files[0]);
-            }
-        }
-        
-        function loadRom(file) {
-            // Show the emulator container
-            document.getElementById('emulator').style.display = 'block';
-            document.getElementById('error-message').style.display = 'none';
-            document.getElementById('upload-option').style.display = 'none';
-            document.getElementById('loading-message').style.display = 'block';
-            
-            // Get file extension
-            const extension = '.' + file.name.split('.').pop().toLowerCase();
-            
-            // Determine system based on file extension
-            let detectedSystem = system;
-            Object.keys(systemConfig).forEach(sys => {
-                if (systemConfig[sys].extensions.includes(extension)) {
-                    detectedSystem = sys;
-                }
-            });
-            
-            // Create ROM URL
-            const romUrl = URL.createObjectURL(file);
-            
-            // Log debug info for Game Boy files to verify they're being detected correctly
-            if (extension === '.gb' || extension === '.gbc' || extension === '.gba') {
-                console.log(`Game Boy ROM detected: ${file.name} (${detectedSystem}) - Size: ${file.size} bytes`);
-            }
-            
-            // Initialize EmulatorJS with detected system
-            initEmulator(file.name, romUrl, detectedSystem);
-        }
-        
-        function initEmulator(romName, romUrl, systemType) {
-            // Hide drop area and show loading message
-            document.getElementById('drop-area').style.display = 'none';
-            document.getElementById('loading-message').style.display = 'block';
-            
-            // Create EmulatorJS elements
-            const emulatorDiv = document.getElementById('emulator');
-            emulatorDiv.innerHTML = '';
-            
-            // Load EmulatorJS script
-            const script = document.createElement('script');
-            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-            
-            // Configure EmulatorJS
-            window.EJS_player = '#emulator';
-            window.EJS_gameName = romName;
-            window.EJS_biosUrl = '';
-            window.EJS_gameUrl = romUrl;
-            window.EJS_core = systemConfig[systemType]?.core || 'nes';
-            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-            window.EJS_startOnLoaded = true;
-            
-            // Update display while loading
-            document.getElementById('system-title').innerText = `Playing ${romName} on ${systemConfig[systemType]?.title}`;
-            
-            // When emulator is ready
-            window.EJS_onGameStart = function() {
-                document.getElementById('loading-message').style.display = 'none';
-                console.log(`Game started: ${romName} (${systemType})`);
-            };
-            
-            // Error handling
-            window.EJS_onLoadError = function(message) {
-                console.error("Error loading ROM:", message);
-                document.getElementById('loading-message').style.display = 'none';
-                document.getElementById('error-message').style.display = 'block';
-                document.getElementById('drop-area').style.display = 'block';
-            };
-            
-            document.body.appendChild(script);
-        }
-    </script>
+    
+    <script src="scripts/main.mjs" type="module"></script>
 </body>
 </html> 

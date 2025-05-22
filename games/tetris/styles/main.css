@@ -1,0 +1,143 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #f0f0f0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 800px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.game-header {
+    padding: 15px;
+    background-color: #252525;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.back-button {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    color: #0088ff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-button:hover {
+    text-decoration: underline;
+}
+
+h1 {
+    color: #0088ff;
+    margin-bottom: 10px;
+}
+
+.controls-info {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: #b0b0b0;
+}
+
+.game-board-container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+}
+
+#game-canvas {
+    background-color: #000;
+    border: 2px solid #333;
+    height: 600px;
+    width: 300px;
+}
+
+.stats-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.next-container, .score-container, .level-container, .lines-container {
+    background-color: #252525;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.next-container h3, .score-container h3, .level-container h3, .lines-container h3 {
+    margin-bottom: 10px;
+    color: #0088ff;
+}
+
+#next-piece {
+    height: 100px;
+    background-color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+}
+
+#score, #level, #lines {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+button {
+    background-color: #0088ff;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0066cc;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .game-board-container {
+        flex-direction: column-reverse;
+    }
+    
+    #game-canvas {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/2;
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    #start-button, #restart-button {
+        grid-column: span 2;
+    }
+} 

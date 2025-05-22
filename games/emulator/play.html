@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing Retro Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-header {
+            background-color: #1e1e1e;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .back-button {
+            color: #0088ff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 12px;
+            background-color: #252525;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .back-button:hover {
+            background-color: #333333;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0af;
+        }
+        
+        .controls-info {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .emulator-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        #game {
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            background-color: #000;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 800px) {
+            #game {
+                height: 450px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            #game {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <a href="index.html" class="back-button">← Back to Games</a>
+        <h1 id="game-title">Loading Game...</h1>
+        <div class="controls-info">
+            <span id="controls-text">Loading...</span>
+        </div>
+    </div>
+    
+    <div class="emulator-container">
+        <div id="game"></div>
+    </div>
+    
+    <!-- EmulatorJS Scripts -->
+    <script type="text/javascript">
+        var EJS_player = "#game";
+        var EJS_core = "";
+        var EJS_gameName = "";
+        var EJS_color = "#0088ff";
+        var EJS_startOnLoaded = true;
+        var EJS_pathtodata = "https://cdn.emulatorjs.org/latest/data/";
+        var EJS_gameUrl = "";
+        var EJS_netplayUrl = 'https://netplay.emulatorjs.org';
+        var EJS_defaultOptions = {
+            "save-state-slot": 1,
+            "save-state-location": "browser",
+            "cheats": true,
+            "shader": "crt",
+            "volume": 0.7
+        };
+    </script>
+    
+    <!-- Script for handling URL parameters and game loading -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const system = urlParams.get('system');
+            const game = urlParams.get('game');
+            
+            if (!system || !game) {
+                showError("Missing system or game parameter");
+                return;
+            }
+            
+            // Validate the system parameter
+            const validSystems = {
+                "gba": {
+                    name: "Game Boy Advance",
+                    core: "gba",
+                    extension: ".gba"
+                },
+                "nes": {
+                    name: "Nintendo Entertainment System",
+                    core: "nes",
+                    extension: ".nes"
+                },
+                "snes": {
+                    name: "Super Nintendo",
+                    core: "snes",
+                    extension: ".sfc"
+                }
+            };
+            
+            if (!validSystems[system]) {
+                showError("Invalid system parameter");
+                return;
+            }
+            
+            // Game library mapping
+            const games = {
+                "gba": {
+                    "pokemon-emerald": {
+                        title: "Pokémon Emerald",
+                        description: "Embark on a journey in the Hoenn region in this classic Pokémon adventure."
+                    },
+                    "mario-advance4": {
+                        title: "Super Mario Advance 4",
+                        description: "Play as Mario in this GBA remake of Super Mario Bros. 3."
+                    },
+                    "zelda-minish-cap": {
+                        title: "The Legend of Zelda: The Minish Cap",
+                        description: "Join Link in this adventure where he can shrink to the size of the Minish people."
+                    }
+                },
+                "nes": {
+                    "super-mario-bros": {
+                        title: "Super Mario Bros",
+                        description: "The classic platformer that started it all - help Mario rescue Princess Peach from Bowser."
+                    },
+                    "zelda": {
+                        title: "The Legend of Zelda",
+                        description: "The first game in the Legend of Zelda series - explore Hyrule and defeat Ganon."
+                    },
+                    "metroid": {
+                        title: "Metroid",
+                        description: "Control Samus Aran as you explore planet Zebes and defeat the Space Pirates."
+                    }
+                },
+                "snes": {
+                    "super-mario-world": {
+                        title: "Super Mario World",
+                        description: "Join Mario and Yoshi in this classic SNES adventure."
+                    },
+                    "zelda-link-to-the-past": {
+                        title: "The Legend of Zelda: A Link to the Past",
+                        description: "One of the greatest Zelda games ever made - explore both Light and Dark worlds."
+                    },
+                    "street-fighter-2": {
+                        title: "Street Fighter II Turbo",
+                        description: "The legendary fighting game that defined the genre."
+                    }
+                }
+            };
+            
+            // Get game info
+            const gameInfo = games[system] && games[system][game];
+            if (!gameInfo) {
+                showError("Invalid game parameter");
+                return;
+            }
+            
+            // Update page with game info
+            document.title = `Playing ${gameInfo.title}`;
+            document.getElementById('game-title').textContent = gameInfo.title;
+            
+            // Update EmulatorJS variables
+            window.EJS_core = validSystems[system].core;
+            window.EJS_gameName = gameInfo.title;
+            window.EJS_gameUrl = `roms/${system}/${game}${validSystems[system].extension}`;
+            
+            // Update controls info based on system
+            const controlsMap = {
+                'gba': 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift',
+                'nes': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
+                'snes': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift'
+            };
+            
+            const controlsInfo = document.getElementById('controls-text');
+            if (controlsInfo && controlsMap[system]) {
+                controlsInfo.textContent = controlsMap[system];
+            }
+            
+            // Load the EmulatorJS script
+            const script = document.createElement('script');
+            script.src = "https://cdn.emulatorjs.org/latest/loader.js";
+            document.body.appendChild(script);
+        });
+        
+        function showError(message) {
+            document.getElementById('game-title').textContent = "Error";
+            const gameElement = document.getElementById('game');
+            if (gameElement) {
+                gameElement.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #ff3333;">
+                        <h2>Error: ${message}</h2>
+                        <p>Please <a href="index.html" style="color: #0088ff;">return to the game list</a> and try again.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Handle Konami Code for cheats
+        let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiPosition = 0;
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === konamiCode[konamiPosition]) {
+                konamiPosition++;
+                
+                if (konamiPosition === konamiCode.length) {
+                    // Konami code completed!
+                    localStorage.setItem('konamiActivated', 'true');
+                    
+                    // Show a fun message
+                    const message = document.createElement('div');
+                    message.style.position = 'fixed';
+                    message.style.top = '0';
+                    message.style.left = '0';
+                    message.style.width = '100%';
+                    message.style.padding = '10px';
+                    message.style.backgroundColor = '#ffcc00';
+                    message.style.color = '#000';
+                    message.style.textAlign = 'center';
+                    message.style.zIndex = '9999';
+                    message.style.fontWeight = 'bold';
+                    message.textContent = '⭐ CHEAT MODE ACTIVATED! ⭐';
+                    document.body.appendChild(message);
+                    
+                    setTimeout(() => {
+                        message.style.transition = 'opacity 1s';
+                        message.style.opacity = '0';
+                        setTimeout(() => message.remove(), 1000);
+                    }, 3000);
+                    
+                    konamiPosition = 0;
+                }
+            } else {
+                konamiPosition = 0;
+            }
+        });
+    </script>
+</body>
+</html> 
