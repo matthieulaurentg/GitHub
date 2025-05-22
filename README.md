@@ -15,6 +15,7 @@ A collection of browser-based games built with various JavaScript libraries and 
 - Aim Trainer
 - Indiana Jones FP Maze
 - Minesweeper
+- Pokémon Emerald (GBA emulator)
 - And more!
 
 ## Play Online
@@ -32,4 +33,9 @@ Each game is in its own directory under the `games` folder.
 - JavaScript
 - Three.js
 - Kaboom.js
-- Various other JavaScript libraries 
+- EmulatorJS (https://emulatorjs.org/)
+- Various other JavaScript libraries
+
+## Secret Features
+
+This game collection includes hidden features for those who know where to look! Try clicking on different elements to discover easter eggs.

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret EmulatorJS Hub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background: #2a2a2a;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #00ff88;
+        }
+        h1 {
+            color: #00ff88;
+            margin: 0;
+        }
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 5px 15px;
+            background: #00ff88;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-button:hover {
+            background: #00cc66;
+        }
+        main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #emulator {
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .rom-selector {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .rom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .rom-item {
+            background: #3a3a3a;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .rom-item:hover {
+            background: #4a4a4a;
+        }
+        .loading-message {
+            text-align: center;
+            margin: 20px 0;
+        }
+        #drop-area {
+            border: 2px dashed #00ff88;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        #drop-area.highlight {
+            border-color: #ffffff;
+            background-color: rgba(0, 255, 136, 0.1);
+        }
+        footer {
+            background: #2a2a2a;
+            padding: 10px;
+            text-align: center;
+            border-top: 2px solid #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../index.html" class="back-button">Back</a>
+        <h1 id="system-title">Secret EmulatorJS Hub</h1>
+    </header>
+    
+    <main>
+        <div id="loading-message" class="loading-message">
+            <h2>Loading EmulatorJS...</h2>
+            <p>Please wait while we prepare your gaming experience</p>
+        </div>
+        
+        <div id="emulator"></div>
+        
+        <div id="drop-area">
+            <p>Drop ROMs here or click to select</p>
+            <input type="file" id="file-input" hidden>
+        </div>
+    </main>
+    
+    <footer>
+        <p>Powered by EmulatorJS - <a href="https://emulatorjs.org/" style="color: #00ff88;" target="_blank">Visit EmulatorJS.org</a></p>
+    </footer>
+
+    <script>
+        // Get system from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const system = urlParams.get('system') || 'nes';
+        
+        // Define system titles and file extensions
+        const systemConfig = {
+            'nes': {
+                title: 'Nintendo Entertainment System (NES)',
+                extensions: ['.nes'],
+                core: 'nes'
+            },
+            'snes': {
+                title: 'Super Nintendo Entertainment System (SNES)',
+                extensions: ['.sfc', '.smc'],
+                core: 'snes'
+            },
+            'gba': {
+                title: 'Game Boy Advance',
+                extensions: ['.gba'],
+                core: 'gba'
+            },
+            'n64': {
+                title: 'Nintendo 64',
+                extensions: ['.n64', '.z64'],
+                core: 'n64'
+            },
+            'genesis': {
+                title: 'Sega Genesis / Mega Drive',
+                extensions: ['.md', '.gen', '.bin'],
+                core: 'segaMD'
+            },
+            'arcade': {
+                title: 'Arcade Games',
+                extensions: ['.zip'],
+                core: 'arcade'
+            }
+        };
+        
+        // Set system title
+        document.getElementById('system-title').innerText = systemConfig[system]?.title || 'Unknown System';
+        
+        // Handle file drop area functionality
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        
+        dropArea.addEventListener('click', () => fileInput.click());
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files } });
+        }
+        
+        function handleFiles(e) {
+            const files = e.target.files;
+            if (files.length) {
+                loadRom(files[0]);
+            }
+        }
+        
+        function loadRom(file) {
+            // Verify file extension
+            const extension = '.' + file.name.split('.').pop().toLowerCase();
+            const validExtensions = systemConfig[system]?.extensions || [];
+            
+            if (!validExtensions.includes(extension)) {
+                alert(`Invalid file type. Please use ${validExtensions.join(', ')} files for ${systemConfig[system]?.title}`);
+                return;
+            }
+            
+            // Create ROM URL
+            const romUrl = URL.createObjectURL(file);
+            
+            // Initialize EmulatorJS
+            initEmulator(file.name, romUrl);
+        }
+        
+        function initEmulator(romName, romUrl) {
+            // Hide drop area and show loading message
+            dropArea.style.display = 'none';
+            document.getElementById('loading-message').style.display = 'block';
+            
+            // Create EmulatorJS elements
+            const emulatorDiv = document.getElementById('emulator');
+            emulatorDiv.innerHTML = '';
+            
+            // Load EmulatorJS script
+            const script = document.createElement('script');
+            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            
+            // Configure EmulatorJS
+            window.EJS_player = '#emulator';
+            window.EJS_gameName = romName;
+            window.EJS_biosUrl = '';
+            window.EJS_gameUrl = romUrl;
+            window.EJS_core = systemConfig[system]?.core || 'nes';
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_startOnLoaded = true;
+            
+            // When emulator is ready
+            script.onload = function() {
+                document.getElementById('loading-message').style.display = 'none';
+            };
+            
+            document.body.appendChild(script);
+        }
+    </script>
+</body>
+</html> 
