@@ -3,8 +3,8 @@
  * Handles drag and drop functionality for ROMs
  */
 
-import { initializeROMs } from './rom-downloader.mjs';
-import { initializeAllROMs } from './rom-simulator.mjs';
+// Import only the ROM mapper which handles real ROMs
+import { initializeROMMapper, getActualROMPath, getAvailableRealROMs, getROMInfo } from './rom-mapper.mjs';
 
 // System definitions with their cores and file extensions
 const systems = {
@@ -108,7 +108,7 @@ const systems = {
         core: "psp",
         extensions: [".iso", ".cso", ".pbp"]
     },
-    3do: {
+    "3do": {
         name: "3DO",
         core: "3do",
         extensions: [".iso", ".cue"]
@@ -142,17 +142,27 @@ const systems = {
 
 // Initialize variables
 let selectedSystem = "gba"; // Default system
-let recentGames = JSON.parse(localStorage.getItem('recentGames')) || [];
+let recentGames = [];
+
+try {
+    recentGames = JSON.parse(localStorage.getItem('recentGames')) || [];
+} catch (e) {
+    console.error("Error loading recent games:", e);
+    recentGames = [];
+}
 
 // DOM elements
-let dragDropArea;
-let fileInput;
-let browseButton;
-let systemButtons;
-let recentGamesList;
+let dragDropArea = null;
+let fileInput = null;
+let browseButton = null;
+let systemButtons = null;
+let recentGamesList = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Document loaded, initializing emulator...");
+    
+    // Initialize ROM mapper (only real ROMs)
+    initializeROMMapper();
     
     // Initialize DOM elements
     dragDropArea = document.querySelector('.drag-drop-area');
@@ -184,6 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize system info display
     updateSystemInfo(selectedSystem);
+    
+    // Check for direct ROM loading parameters
+    checkForDirectLoad();
+    
+    // Create a section for real ROMs that exist
+    createRealROMsSection();
     
     console.log("Emulator initialization complete");
 });
@@ -233,7 +249,7 @@ function filterSystems(searchTerm) {
             foundAny = true;
             
             // Make sure parent category is visible
-            const parentCategory = btn.closest('.system-category-buttons').previousElementSibling;
+            const parentCategory = btn.closest('.system-category-buttons')?.previousElementSibling;
             if (parentCategory) {
                 parentCategory.style.display = 'block';
             }
@@ -244,8 +260,8 @@ function filterSystems(searchTerm) {
     
     // Hide empty categories
     document.querySelectorAll('.system-category').forEach(cat => {
-        const buttons = cat.nextElementSibling.querySelectorAll('.system-button[style*="display: inline-block"]');
-        if (buttons.length === 0) {
+        const buttons = cat.nextElementSibling?.querySelectorAll('.system-button[style*="display: inline-block"]');
+        if (!buttons || buttons.length === 0) {
             cat.style.display = 'none';
         } else {
             cat.style.display = 'block';
@@ -256,7 +272,7 @@ function filterSystems(searchTerm) {
     const systemSelector = document.querySelector('.system-selector');
     let noResultsMsg = document.getElementById('no-results-message');
     
-    if (!foundAny) {
+    if (!foundAny && systemSelector) {
         if (!noResultsMsg) {
             noResultsMsg = document.createElement('div');
             noResultsMsg.id = 'no-results-message';
@@ -536,11 +552,15 @@ function preventDefaults(e) {
 }
 
 function highlight() {
-    dragDropArea.classList.add('highlight');
+    if (dragDropArea) {
+        dragDropArea.classList.add('highlight');
+    }
 }
 
 function unhighlight() {
-    dragDropArea.classList.remove('highlight');
+    if (dragDropArea) {
+        dragDropArea.classList.remove('highlight');
+    }
 }
 
 function handleDrop(e) {
@@ -701,8 +721,12 @@ function addToRecentGames(game) {
     }
     
     // Save to localStorage
-    localStorage.setItem('recentGames', JSON.stringify(recentGames));
-    console.log("Updated recent games list:", recentGames);
+    try {
+        localStorage.setItem('recentGames', JSON.stringify(recentGames));
+        console.log("Updated recent games list:", recentGames);
+    } catch (e) {
+        console.error("Error saving recent games:", e);
+    }
     
     // Update the UI
     updateRecentGamesList();
@@ -864,4 +888,122 @@ function updateSystemInfo(systemKey) {
         </ul>
         <p>Drag and drop a ${system.extensions[0]} file into the box below to play.</p>
     `;
+}
+
+// Check for direct ROM loading via URL parameters
+function checkForDirectLoad() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const system = urlParams.get('system');
+    const rom = urlParams.get('rom');
+    
+    if (system && rom && systems[system]) {
+        console.log(`Direct ROM loading requested: ${system}/${rom}`);
+        
+        // Set the selected system
+        selectedSystem = system;
+        
+        // Update the UI to show the selected system
+        document.querySelectorAll('.system-button').forEach(btn => {
+            if (btn.dataset.system === system) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Try to get the actual ROM path (only real ROMs)
+        const actualPath = getActualROMPath(system, rom);
+        
+        if (actualPath) {
+            console.log(`Found real ROM path: ${actualPath}`);
+            
+            // Load the ROM
+            fetch(actualPath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to load ROM: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Create a File object from the Blob
+                    const fileName = actualPath.split('/').pop();
+                    const file = new File([blob], fileName, { type: 'application/octet-stream' });
+                    
+                    // Handle the file
+                    handleFile(file);
+                })
+                .catch(error => {
+                    console.error(`Error loading ROM: ${error.message}`);
+                    alert(`Error loading ROM: ${error.message}`);
+                });
+        } else {
+            console.error(`No real ROM file found for ${system}/${rom}`);
+            alert(`No real ROM file found for ${rom}. Please add the ROM file to the roms/${system}/ directory.`);
+        }
+    }
+}
+
+// Create a section for real ROMs
+function createRealROMsSection() {
+    const realROMs = getAvailableRealROMs();
+    const featuredGamesGrid = document.querySelector('.featured-games-grid');
+    
+    if (!featuredGamesGrid) {
+        console.error("Featured games grid not found");
+        return;
+    }
+    
+    // Clear existing content
+    featuredGamesGrid.innerHTML = '';
+    
+    // Count available real ROMs
+    let romCount = 0;
+    
+    // For each system with real ROMs
+    Object.keys(realROMs).forEach(system => {
+        realROMs[system].forEach(romId => {
+            romCount++;
+            
+            // Get ROM info
+            const info = getROMInfo(system, romId);
+            if (!info) return;
+            
+            // Create a card for this ROM
+            const card = document.createElement('div');
+            card.className = 'featured-game-card';
+            
+            card.innerHTML = `
+                <div class="featured-game-image">
+                    <span>${info.emoji || '🎮'}</span>
+                </div>
+                <div class="featured-game-info">
+                    <div class="featured-game-title">${info.title}</div>
+                    <div class="featured-game-system">${info.system || systems[system].name}</div>
+                    <button class="featured-game-play" onclick="window.location.href='?system=${system}&rom=${romId}'">Play Now</button>
+                </div>
+            `;
+            
+            // Add to the grid
+            featuredGamesGrid.appendChild(card);
+        });
+    });
+    
+    // Update header based on ROM count
+    const featuredGamesHeader = document.querySelector('.featured-games h3');
+    if (featuredGamesHeader) {
+        if (romCount === 0) {
+            featuredGamesHeader.textContent = 'No Real ROMs Found';
+            
+            // Show a message
+            const message = document.createElement('p');
+            message.style.textAlign = 'center';
+            message.style.padding = '20px';
+            message.style.color = '#888';
+            message.innerHTML = 'No real ROM files were found. Please add your ROM files to the <code>roms</code> folder.';
+            featuredGamesGrid.appendChild(message);
+        } else {
+            featuredGamesHeader.textContent = `Available ROMs (${romCount})`;
+        }
+    }
 } 
