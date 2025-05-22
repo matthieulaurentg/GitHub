@@ -5,6 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retro Game Emulator</title>
     <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .drag-drop-area {
+            border: 3px dashed #444;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            background-color: #252525;
+            transition: all 0.3s;
+        }
+        
+        .drag-drop-area.highlight {
+            border-color: #0088ff;
+            background-color: #1a2a3a;
+        }
+        
+        .drag-drop-area h3 {
+            margin-top: 0;
+            color: #0088ff;
+        }
+        
+        .drag-drop-area p {
+            margin-bottom: 20px;
+        }
+        
+        .drag-drop-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .browse-button {
+            background-color: #0088ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .browse-button:hover {
+            background-color: #0066cc;
+        }
+        
+        .system-selector {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .system-button {
+            background-color: #333;
+            color: white;
+            border: 2px solid #444;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .system-button.active {
+            background-color: #0088ff;
+            border-color: #0088ff;
+        }
+        
+        .system-button:hover {
+            background-color: #444;
+        }
+        
+        .recently-played {
+            margin-top: 30px;
+        }
+        
+        .recently-played h3 {
+            color: #0088ff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .recent-games-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recent-games-list li {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .recent-games-list li:hover {
+            background-color: #252525;
+        }
+        
+        .game-title {
+            flex-grow: 1;
+        }
+        
+        .system-tag {
+            background-color: #333;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .play-again-btn {
+            background-color: #0088ff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .play-again-btn:hover {
+            background-color: #0066cc;
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
@@ -12,52 +141,48 @@
             <a href="../index.html" class="back-button">← Back</a>
             <h1>Retro Game Emulator</h1>
             <div class="controls-info">
-                <span>Powered by <a href="https://emulatorjs.org/" target="_blank" style="color: #0088ff;">EmulatorJS.org</a> | All ROMs Pre-Downloaded</span>
+                <span>Powered by <a href="https://emulatorjs.org/" target="_blank" style="color: #0088ff;">EmulatorJS.org</a></span>
             </div>
         </div>
         
         <div class="emulator-container">
             <div class="game-list">
-                <h2>Available Games</h2>
-                <div class="system-section">
-                    <h3>Game Boy Advance</h3>
-                    <ul>
-                        <li><a href="play.html?system=gba&game=pokemon-emerald" class="game-link">Pokémon Emerald <span class="rom-ready"></span></a></li>
-                        <li><a href="play.html?system=gba&game=mario-advance4" class="game-link">Super Mario Advance 4 <span class="rom-ready"></span></a></li>
-                        <li><a href="play.html?system=gba&game=zelda-minish-cap" class="game-link">The Legend of Zelda: The Minish Cap <span class="rom-ready"></span></a></li>
-                    </ul>
+                <h2>Play Your Games</h2>
+                
+                <div class="system-selector">
+                    <button class="system-button active" data-system="gba">Game Boy Advance</button>
+                    <button class="system-button" data-system="nes">NES</button>
+                    <button class="system-button" data-system="snes">SNES</button>
+                    <button class="system-button" data-system="n64">N64</button>
+                    <button class="system-button" data-system="ps">PlayStation</button>
                 </div>
                 
-                <div class="system-section">
-                    <h3>Nintendo Entertainment System (NES)</h3>
-                    <ul>
-                        <li><a href="play.html?system=nes&game=super-mario-bros" class="game-link">Super Mario Bros <span class="rom-ready"></span></a></li>
-                        <li><a href="play.html?system=nes&game=zelda" class="game-link">The Legend of Zelda <span class="rom-ready"></span></a></li>
-                        <li><a href="play.html?system=nes&game=metroid" class="game-link">Metroid <span class="rom-ready"></span></a></li>
-                    </ul>
+                <div class="drag-drop-area">
+                    <div class="drag-drop-icon">📁</div>
+                    <h3>Drag & Drop Your ROM File</h3>
+                    <p>Or click below to browse your files</p>
+                    <input type="file" id="rom-file-input" class="file-input" accept=".gba,.nes,.sfc,.smc,.n64,.z64,.v64,.bin,.iso">
+                    <button class="browse-button" id="browse-button">Browse Files</button>
                 </div>
                 
-                <div class="system-section">
-                    <h3>Super Nintendo (SNES)</h3>
-                    <ul>
-                        <li><a href="play.html?system=snes&game=super-mario-world" class="game-link">Super Mario World <span class="rom-ready"></span></a></li>
-                        <li><a href="play.html?system=snes&game=zelda-link-to-the-past" class="game-link">The Legend of Zelda: A Link to the Past <span class="rom-ready"></span></a></li>
-                        <li><a href="play.html?system=snes&game=street-fighter-2" class="game-link">Street Fighter II Turbo <span class="rom-ready"></span></a></li>
+                <div class="recently-played">
+                    <h3>Recently Played Games</h3>
+                    <ul class="recent-games-list" id="recent-games-list">
+                        <li class="empty-message">No recently played games</li>
                     </ul>
                 </div>
             </div>
             
             <div class="instructions">
                 <h2>How to Play</h2>
-                <p>1. Click on any game title from the list to launch the emulator.</p>
-                <p>2. The controls will be shown on the emulator screen.</p>
-                <p>3. For mobile devices, touch controls will appear automatically.</p>
-                <p>4. You can save your progress using the save state feature in the emulator.</p>
-                <p>5. Game saves are stored locally in your browser.</p>
+                <p>1. Select your system type from the buttons above.</p>
+                <p>2. Drag and drop your ROM file into the box, or click Browse to select a file.</p>
+                <p>3. The emulator will launch automatically with your game.</p>
+                <p>4. Your recently played games will be saved for quick access (stored locally).</p>
                 
                 <div class="note">
-                    <p><strong>Note:</strong> All ROMs have been pre-downloaded from emulatorgames.net for educational purposes.</p>
-                    <p>The emulator will load these ROMs directly without requiring additional downloads.</p>
+                    <p><strong>Note:</strong> No games are included with this emulator. You need to provide your own ROM files.</p>
+                    <p>Your ROM files are never uploaded anywhere - all processing happens locally in your browser.</p>
                     <p>We encourage supporting the original developers by purchasing their games when available.</p>
                 </div>
                 
@@ -110,10 +235,6 @@
                     <tr>
                         <td>Fast Forward</td>
                         <td>Space (hold)</td>
-                    </tr>
-                    <tr>
-                        <td>Rewind</td>
-                        <td>R</td>
                     </tr>
                 </table>
                 
