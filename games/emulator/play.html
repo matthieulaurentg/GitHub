@@ -81,6 +81,41 @@
                 height: 350px;
             }
         }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #0088ff;
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 136, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #0088ff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-container {
+            padding: 20px;
+            text-align: center;
+            color: #ff3333;
+        }
     </style>
 </head>
 <body>
@@ -93,130 +128,156 @@
     </div>
     
     <div class="emulator-container">
-        <div id="game"></div>
+        <div id="game">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading Emulator...</div>
+            </div>
+        </div>
     </div>
     
     <!-- EmulatorJS Scripts -->
     <script type="text/javascript">
-        var EJS_player = "#game";
-        var EJS_core = "";
-        var EJS_gameName = "";
-        var EJS_color = "#0088ff";
+        // EmulatorJS configuration variables
+        var EJS_player = '#game';
+        var EJS_core = '';
+        var EJS_gameName = '';
+        var EJS_color = '#0088ff';
         var EJS_startOnLoaded = true;
-        var EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-        var EJS_gameUrl = "";
+        var EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+        var EJS_gameUrl = '';
         var EJS_netplayUrl = 'https://netplay.emulatorjs.org';
         var EJS_defaultOptions = {
-            "save-state-slot": 1,
-            "save-state-location": "browser",
-            "cheats": true,
-            "shader": "crt",
-            "volume": 0.7
+            'save-state-slot': 1,
+            'save-state-location': 'browser',
+            'cheats': true,
+            'shader': 'crt',
+            'volume': 0.7
         };
     </script>
     
     <!-- Script for handling URL parameters and game loading -->
     <script>
+        // Systems configuration
+        const validSystems = {
+            "gba": {
+                name: "Game Boy Advance",
+                core: "gba"
+            },
+            "nes": {
+                name: "Nintendo Entertainment System",
+                core: "nes"
+            },
+            "snes": {
+                name: "Super Nintendo",
+                core: "snes"
+            },
+            "n64": {
+                name: "Nintendo 64",
+                core: "n64"
+            },
+            "ps": {
+                name: "PlayStation",
+                core: "psx"
+            }
+        };
+        
+        // Controls mapping
+        const controlsMap = {
+            'gba': 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift',
+            'nes': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
+            'snes': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift',
+            'n64': 'Movement: Arrow Keys | A: X | B: Z | L: A | R: S | Z: D | Start: Enter',
+            'ps': 'D-Pad: Arrow Keys | X: Z | O: X | Square: A | Triangle: S | L1: Q | R1: W | Start: Enter | Select: Shift'
+        };
+        
         document.addEventListener('DOMContentLoaded', () => {
-            // Get URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const system = urlParams.get('system');
-            const blobUrl = urlParams.get('blob');
-            const gameName = urlParams.get('name');
-            
-            if (!system || !blobUrl) {
-                showError("Missing system or game file");
-                return;
-            }
-            
-            // Validate the system parameter
-            const validSystems = {
-                "gba": {
-                    name: "Game Boy Advance",
-                    core: "gba"
-                },
-                "nes": {
-                    name: "Nintendo Entertainment System",
-                    core: "nes"
-                },
-                "snes": {
-                    name: "Super Nintendo",
-                    core: "snes"
-                },
-                "n64": {
-                    name: "Nintendo 64",
-                    core: "n64"
-                },
-                "ps": {
-                    name: "PlayStation",
-                    core: "psx"
-                }
-            };
-            
-            if (!validSystems[system]) {
-                showError("Invalid system parameter");
-                return;
-            }
-            
-            // Update page with game info
-            const gameTitle = gameName || "Game";
-            document.title = `Playing ${gameTitle}`;
-            document.getElementById('game-title').textContent = gameTitle;
-            
-            // Update EmulatorJS variables
-            window.EJS_core = validSystems[system].core;
-            window.EJS_gameName = gameTitle;
-            window.EJS_gameUrl = decodeURIComponent(blobUrl);
-            
-            // Update controls info based on system
-            const controlsMap = {
-                'gba': 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift',
-                'nes': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
-                'snes': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift',
-                'n64': 'Movement: Arrow Keys | A: X | B: Z | L: A | R: S | Z: D | Start: Enter',
-                'ps': 'D-Pad: Arrow Keys | X: Z | O: X | Square: A | Triangle: S | L1: Q | R1: W | Start: Enter | Select: Shift'
-            };
-            
-            const controlsInfo = document.getElementById('controls-text');
-            if (controlsInfo && controlsMap[system]) {
-                controlsInfo.textContent = controlsMap[system];
-            }
-            
-            // Check if Konami code was activated
-            const konamiActivated = localStorage.getItem('konamiActivated') === 'true';
-            if (konamiActivated) {
-                // Add cheat mode options
-                window.EJS_defaultOptions.cheats = true;
-                window.EJS_defaultOptions.fastForward = true;
+            try {
+                // Get URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const system = urlParams.get('system');
+                const blobUrl = urlParams.get('blob');
+                const gameName = urlParams.get('name');
                 
-                // Add visual indicator
-                const cheatIndicator = document.createElement('div');
-                cheatIndicator.style.position = 'absolute';
-                cheatIndicator.style.top = '15px';
-                cheatIndicator.style.right = '15px';
-                cheatIndicator.style.background = '#ffcc00';
-                cheatIndicator.style.color = '#000';
-                cheatIndicator.style.padding = '5px 10px';
-                cheatIndicator.style.borderRadius = '3px';
-                cheatIndicator.style.fontSize = '12px';
-                cheatIndicator.style.fontWeight = 'bold';
-                cheatIndicator.textContent = '⭐ CHEAT MODE';
-                document.querySelector('.game-header').appendChild(cheatIndicator);
+                // Validate parameters
+                if (!system || !blobUrl) {
+                    showError("Missing system or game file");
+                    return;
+                }
+                
+                if (!validSystems[system]) {
+                    showError(`Invalid system: ${system}`);
+                    return;
+                }
+                
+                // Update page with game info
+                const gameTitle = gameName || "Game";
+                document.title = `Playing ${gameTitle}`;
+                document.getElementById('game-title').textContent = gameTitle;
+                
+                // Update controls info
+                const controlsInfo = document.getElementById('controls-text');
+                if (controlsInfo && controlsMap[system]) {
+                    controlsInfo.textContent = controlsMap[system];
+                }
+                
+                // Update EmulatorJS variables
+                window.EJS_core = validSystems[system].core;
+                window.EJS_gameName = gameTitle;
+                window.EJS_gameUrl = decodeURIComponent(blobUrl);
+                
+                // Check if Konami code was activated
+                const konamiActivated = localStorage.getItem('konamiActivated') === 'true';
+                if (konamiActivated) {
+                    // Add cheat mode options
+                    window.EJS_defaultOptions.cheats = true;
+                    window.EJS_defaultOptions.fastForward = true;
+                    
+                    // Add visual indicator
+                    const cheatIndicator = document.createElement('div');
+                    cheatIndicator.style.position = 'absolute';
+                    cheatIndicator.style.top = '15px';
+                    cheatIndicator.style.right = '15px';
+                    cheatIndicator.style.background = '#ffcc00';
+                    cheatIndicator.style.color = '#000';
+                    cheatIndicator.style.padding = '5px 10px';
+                    cheatIndicator.style.borderRadius = '3px';
+                    cheatIndicator.style.fontSize = '12px';
+                    cheatIndicator.style.fontWeight = 'bold';
+                    cheatIndicator.textContent = '⭐ CHEAT MODE';
+                    document.querySelector('.game-header').appendChild(cheatIndicator);
+                }
+                
+                // Load the EmulatorJS script
+                loadEmulatorScript();
+                
+            } catch (error) {
+                console.error('Error initializing emulator:', error);
+                showError(`Error initializing emulator: ${error.message}`);
             }
-            
-            // Load the EmulatorJS script
-            const script = document.createElement('script');
-            script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-            document.body.appendChild(script);
         });
         
+        // Load the EmulatorJS script
+        function loadEmulatorScript() {
+            const script = document.createElement('script');
+            script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+            script.onerror = () => {
+                showError("Failed to load EmulatorJS. Please check your internet connection and try again.");
+            };
+            document.body.appendChild(script);
+        }
+        
+        // Show error message
         function showError(message) {
             document.getElementById('game-title').textContent = "Error";
+            document.getElementById('controls-text').textContent = "";
+            
             const gameElement = document.getElementById('game');
             if (gameElement) {
                 gameElement.innerHTML = `
-                    <div style="padding: 20px; text-align: center; color: #ff3333;">
-                        <h2>Error: ${message}</h2>
+                    <div class="error-container">
+                        <h2>Error</h2>
+                        <p>${message}</p>
                         <p>Please <a href="index.html" style="color: #0088ff;">return to the game list</a> and try again.</p>
                     </div>
                 `;

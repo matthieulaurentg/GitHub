@@ -1,6 +1,6 @@
 /**
  * Main script for the EmulatorJS game collection
- * This simple script initializes the UI and Konami code functionality
+ * Handles drag and drop functionality for ROMs
  */
 
 import { initializeROMs } from './rom-downloader.mjs';
@@ -53,9 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add event listeners for Konami code
     setupKonamiCode();
     
+    // Set up the drag and drop functionality
     setupDragAndDrop();
+    
+    // Set up the system selector buttons
     setupSystemButtons();
+    
+    // Set up the browse button
     setupBrowseButton();
+    
+    // Update the recent games list
     updateRecentGamesList();
 });
 
@@ -290,6 +297,8 @@ function playRetroSound() {
 
 // Setup drag and drop functionality
 function setupDragAndDrop() {
+    if (!dragDropArea) return;
+    
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dragDropArea.addEventListener(eventName, preventDefaults, false);
@@ -307,9 +316,6 @@ function setupDragAndDrop() {
     
     // Handle dropped files
     dragDropArea.addEventListener('drop', handleDrop, false);
-    
-    // Handle file input changes
-    fileInput.addEventListener('change', handleFiles, false);
 }
 
 function preventDefaults(e) {
@@ -328,11 +334,28 @@ function unhighlight() {
 function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
-    handleFiles({ target: { files } });
+    if (files && files.length > 0) {
+        handleFile(files[0]);
+    }
 }
 
-function handleFiles(e) {
-    const file = e.target.files[0];
+// Setup file input for browsing files
+function setupBrowseButton() {
+    if (!browseButton || !fileInput) return;
+    
+    browseButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+}
+
+// Handle the ROM file
+function handleFile(file) {
     if (!file) return;
     
     // Check if file extension matches selected system
@@ -362,6 +385,8 @@ function handleFiles(e) {
 
 // Setup system selection buttons
 function setupSystemButtons() {
+    if (!systemButtons) return;
+    
     systemButtons.forEach(button => {
         button.addEventListener('click', () => {
             // Remove active class from all buttons
@@ -377,19 +402,17 @@ function setupSystemButtons() {
             updateFileInputAccept();
         });
     });
+    
+    // Initialize the file input accept attribute
+    updateFileInputAccept();
 }
 
 function updateFileInputAccept() {
+    if (!fileInput) return;
+    
     // Get all valid extensions for the selected system
     const validExtensions = systems[selectedSystem].extensions.join(',');
     fileInput.setAttribute('accept', validExtensions);
-}
-
-// Setup browse button
-function setupBrowseButton() {
-    browseButton.addEventListener('click', () => {
-        fileInput.click();
-    });
 }
 
 // Handle recent games
@@ -413,6 +436,8 @@ function addToRecentGames(game) {
 }
 
 function updateRecentGamesList() {
+    if (!recentGamesList) return;
+    
     // Clear current list
     recentGamesList.innerHTML = '';
     
