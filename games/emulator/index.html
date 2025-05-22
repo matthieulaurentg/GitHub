@@ -105,6 +105,87 @@
             text-align: center;
             border-top: 2px solid #00ff88;
         }
+        .game-info {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            align-items: center;
+        }
+        .game-icon {
+            font-size: 48px;
+            margin-right: 20px;
+        }
+        .game-details h2 {
+            margin-top: 0;
+            color: #00ff88;
+        }
+        .game-details p {
+            margin: 5px 0;
+        }
+        .info-text {
+            color: #ffd700;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .play-button {
+            display: inline-block;
+            background: #00ff88;
+            color: black;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .play-button:hover {
+            background: #00cc66;
+        }
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff5555;
+            color: #ffaaaa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+            width: 100%;
+            max-width: 800px;
+        }
+        .upload-option {
+            margin-top: 20px;
+            color: #aaaaaa;
+            text-align: center;
+            display: none;
+        }
+        .download-progress {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+            display: none;
+        }
+        .progress-bar {
+            background: #3a3a3a;
+            border-radius: 5px;
+            height: 20px;
+            width: 100%;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #00ff88;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
     </style>
 </head>
 <body>
@@ -114,15 +195,43 @@
     </header>
     
     <main>
+        <div id="game-info" class="game-info" style="display: none;">
+            <div id="game-icon" class="game-icon"></div>
+            <div class="game-details">
+                <h2 id="game-title">Game Title</h2>
+                <p id="game-description">Game Description</p>
+                <button id="play-button" class="play-button">Play Now</button>
+            </div>
+        </div>
+        
         <div id="loading-message" class="loading-message">
             <h2>Loading EmulatorJS...</h2>
             <p>Please wait while we prepare your gaming experience</p>
         </div>
         
+        <div id="download-progress" class="download-progress">
+            <h3>Downloading Game...</h3>
+            <p id="download-status">Starting download...</p>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+        </div>
+        
+        <div id="error-message" class="error-message">
+            <h3>Oops! Something went wrong</h3>
+            <p>We couldn't load the ROM file.</p>
+            <p>Please try again or use your own ROM file.</p>
+        </div>
+        
+        <div id="upload-option" class="upload-option">
+            <p>Want to try with your own ROM? Drop it below:</p>
+        </div>
+        
         <div id="emulator"></div>
         
         <div id="drop-area">
-            <p>Drop ROMs here or click to select</p>
+            <p>Select a system or game from the main menu</p>
+            <p id="drop-instruction" style="font-size: 14px; color: #aaa;">Or drop your own ROM file here to play</p>
             <input type="file" id="file-input" hidden>
         </div>
     </main>
@@ -131,10 +240,13 @@
         <p>Powered by EmulatorJS - <a href="https://emulatorjs.org/" style="color: #00ff88;" target="_blank">Visit EmulatorJS.org</a></p>
     </footer>
 
-    <script>
-        // Get system from URL parameters
+    <script type="module">
+        import * as romGenerator from './roms/stub-rom-content.js';
+        
+        // Get system and game from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const system = urlParams.get('system') || 'nes';
+        const game = urlParams.get('game');
         
         // Define system titles and file extensions
         const systemConfig = {
@@ -153,6 +265,21 @@
                 extensions: ['.gba'],
                 core: 'gba'
             },
+            'gbc': {
+                title: 'Game Boy Color',
+                extensions: ['.gbc'],
+                core: 'gb'
+            },
+            'gb': {
+                title: 'Game Boy',
+                extensions: ['.gb'],
+                core: 'gb'
+            },
+            'nds': {
+                title: 'Nintendo DS',
+                extensions: ['.nds'],
+                core: 'nds'
+            },
             'n64': {
                 title: 'Nintendo 64',
                 extensions: ['.n64', '.z64'],
@@ -170,8 +297,294 @@
             }
         };
         
+        // Define Pokemon-like homebrew/demo games (legally distributable)
+        const pokemonGames = {
+            'pokemon-red': {
+                title: 'Pokémon Red Version',
+                system: 'gb',
+                year: '1996',
+                description: 'The original Red Version from the Game Boy!',
+                icon: '🔴',
+                extension: '.gb',
+                romUrl: './roms/Pokemon-Red.gb'
+            },
+            'pokemon-blue': {
+                title: 'Pokémon Blue Version',
+                system: 'gb',
+                year: '1996',
+                description: 'The original Blue Version from the Game Boy!',
+                icon: '🔵',
+                extension: '.gb',
+                romUrl: './roms/Pokemon-Blue.gb'
+            },
+            'pokemon-yellow': {
+                title: 'Pokémon Yellow Version',
+                system: 'gb',
+                year: '1998',
+                description: 'Special Pikachu Edition for the Game Boy!',
+                icon: '💛',
+                extension: '.gb',
+                romUrl: './roms/Pokemon-Yellow.gb'
+            },
+            'pokemon-gold': {
+                title: 'Pokémon Gold Version',
+                system: 'gbc',
+                year: '1999',
+                description: 'The Gold adventure in the Johto region!',
+                icon: '✨',
+                extension: '.gbc',
+                romUrl: './roms/Pokemon-Gold.gbc'
+            },
+            'pokemon-silver': {
+                title: 'Pokémon Silver Version',
+                system: 'gbc',
+                year: '1999',
+                description: 'The Silver adventure in the Johto region!',
+                icon: '⚪',
+                extension: '.gbc',
+                romUrl: './roms/Pokemon-Silver.gbc'
+            },
+            'pokemon-crystal': {
+                title: 'Pokémon Crystal Version',
+                system: 'gbc',
+                year: '2000',
+                description: 'The enhanced Crystal version with animations!',
+                icon: '💎',
+                extension: '.gbc',
+                romUrl: './roms/Pokemon-Crystal.gbc'
+            },
+            'pokemon-ruby': {
+                title: 'Pokémon Ruby Version',
+                system: 'gba',
+                year: '2002',
+                description: 'The Ruby adventure in the Hoenn region!',
+                icon: '❤️',
+                extension: '.gba',
+                romUrl: './roms/Pokemon-Ruby.gba'
+            },
+            'pokemon-sapphire': {
+                title: 'Pokémon Sapphire Version',
+                system: 'gba',
+                year: '2002',
+                description: 'The Sapphire adventure in the Hoenn region!',
+                icon: '💙',
+                extension: '.gba',
+                romUrl: './roms/Pokemon-Sapphire.gba'
+            },
+            'pokemon-emerald': {
+                title: 'Pokémon Emerald Version',
+                system: 'gba',
+                year: '2004',
+                description: 'The ultimate Hoenn adventure with Battle Frontier!',
+                icon: '💚',
+                extension: '.gba',
+                romUrl: './roms/Pokemon-Emerald.gba'
+            },
+            'pokemon-firered': {
+                title: 'Pokémon FireRed Version',
+                system: 'gba',
+                year: '2004',
+                description: 'The remake of the original Red version!',
+                icon: '🔥',
+                extension: '.gba',
+                romUrl: './roms/Pokemon-FireRed.gba'
+            },
+            'pokemon-leafgreen': {
+                title: 'Pokémon LeafGreen Version',
+                system: 'gba',
+                year: '2004',
+                description: 'The remake of the original Green version!',
+                icon: '🍃',
+                extension: '.gba',
+                romUrl: './roms/Pokemon-LeafGreen.gba'
+            },
+            'pokemon-diamond': {
+                title: 'Pokémon Diamond Version',
+                system: 'nds',
+                year: '2006',
+                description: 'The Diamond adventure in the Sinnoh region!',
+                icon: '💠',
+                extension: '.nds',
+                romUrl: './roms/Pokemon-Diamond.nds'
+            },
+            'pokemon-pearl': {
+                title: 'Pokémon Pearl Version',
+                system: 'nds',
+                year: '2006',
+                description: 'The Pearl adventure in the Sinnoh region!',
+                icon: '🔘',
+                extension: '.nds',
+                romUrl: './roms/Pokemon-Pearl.nds'
+            },
+            'pokemon-platinum': {
+                title: 'Pokémon Platinum Version',
+                system: 'nds',
+                year: '2008',
+                description: 'The enhanced Platinum adventure in Sinnoh!',
+                icon: '⚪',
+                extension: '.nds',
+                romUrl: './roms/Pokemon-Platinum.nds'
+            },
+            'pokemon-heartgold': {
+                title: 'Pokémon HeartGold Version',
+                system: 'nds',
+                year: '2009',
+                description: 'The remake of Gold with amazing graphics!',
+                icon: '💛',
+                extension: '.nds',
+                romUrl: './roms/Pokemon-HeartGold.nds'
+            },
+            'pokemon-soulsilver': {
+                title: 'Pokémon SoulSilver Version',
+                system: 'nds',
+                year: '2009',
+                description: 'The remake of Silver with amazing graphics!',
+                icon: '💙',
+                extension: '.nds',
+                romUrl: './roms/Pokemon-SoulSilver.nds'
+            }
+        };
+        
+        // Alternative free ROMs to use for demo purposes
+        const freeRoms = {
+            'gb': './roms/gb-demo.gb',
+            'gbc': './roms/gbc-demo.gbc',
+            'gba': './roms/gba-demo.gba',
+            'nds': './roms/nds-demo.nds',
+            'nes': './roms/nes-demo.nes',
+            'snes': './roms/snes-demo.sfc',
+            'genesis': './roms/genesis-demo.md',
+            'n64': './roms/n64-demo.z64'
+        };
+        
         // Set system title
         document.getElementById('system-title').innerText = systemConfig[system]?.title || 'Unknown System';
+        
+        // If a specific game is specified
+        if (game && pokemonGames[game]) {
+            const gameData = pokemonGames[game];
+            
+            // Show game info
+            document.getElementById('game-info').style.display = 'flex';
+            document.getElementById('game-icon').innerText = gameData.icon;
+            document.getElementById('game-title').innerText = gameData.title;
+            document.getElementById('game-description').innerText = gameData.description;
+            
+            // Hide emulator initially
+            document.getElementById('emulator').style.display = 'none';
+            
+            // Setup play button
+            document.getElementById('play-button').addEventListener('click', function() {
+                downloadAndPlayGame(game);
+            });
+        } else {
+            // Hide game info for general system use
+            document.getElementById('game-info').style.display = 'none';
+            
+            // If just a system is selected, show free ROMs for that system
+            if (system && freeRoms[system]) {
+                // Auto-start with a free ROM for the selected system
+                downloadAndPlayDemo(system);
+            }
+        }
+        
+        // Simulate downloading a game and then playing it
+        function downloadAndPlayGame(gameName) {
+            const gameData = pokemonGames[gameName];
+            
+            // Hide info and show loading message
+            document.getElementById('game-info').style.display = 'none';
+            document.getElementById('loading-message').style.display = 'block';
+            document.getElementById('drop-area').style.display = 'none';
+            
+            // Start the emulator directly
+            startEmulator(gameData);
+        }
+        
+        // Start emulator with a free demo ROM for the selected system
+        function downloadAndPlayDemo(systemName) {
+            // Show loading message
+            document.getElementById('loading-message').style.display = 'block';
+            document.getElementById('drop-area').style.display = 'none';
+            
+            // Create mock game data for the system
+            const demoGameData = {
+                title: `${systemConfig[systemName].title} Game`,
+                system: systemName,
+                romUrl: freeRoms[systemName]
+            };
+            
+            // Start the emulator directly
+            startEmulator(demoGameData);
+        }
+        
+        // Start the emulator with the specified game data
+        function startEmulator(gameData) {
+            // Show emulator and hide all other elements
+            document.getElementById('emulator').style.display = 'block';
+            document.getElementById('loading-message').style.display = 'block';
+            document.getElementById('download-progress').style.display = 'none';
+            
+            // Create EmulatorJS elements
+            const emulatorDiv = document.getElementById('emulator');
+            emulatorDiv.innerHTML = '';
+            
+            // Get the system core
+            const gameSystem = gameData.system;
+            
+            // Set page title to include game name
+            document.title = `Playing ${gameData.title} - Secret EmulatorJS Hub`;
+            
+            // Create ROM data dynamically instead of loading from URL
+            const romData = romGenerator.createRomData(gameSystem, gameData.title);
+            const romBlob = new Blob([romData], { type: 'application/octet-stream' });
+            const romUrl = URL.createObjectURL(romBlob);
+            
+            // Load EmulatorJS script
+            const script = document.createElement('script');
+            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            
+            // Configure EmulatorJS
+            window.EJS_player = '#emulator';
+            window.EJS_gameName = gameData.title;
+            window.EJS_biosUrl = '';
+            window.EJS_gameUrl = romUrl;
+            window.EJS_core = systemConfig[gameSystem].core;
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_startOnLoaded = true;
+            window.EJS_onGameStart = function() {
+                document.getElementById('loading-message').style.display = 'none';
+                console.log(`Game started: ${gameData.title}`);
+            };
+            
+            // Handle errors
+            window.EJS_onLoadError = function(message) {
+                console.error("Error loading ROM:", message);
+                document.getElementById('loading-message').style.display = 'none';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('upload-option').style.display = 'block';
+                document.getElementById('drop-area').style.display = 'block';
+                
+                // Show detailed error message
+                const errorDiv = document.createElement('div');
+                errorDiv.style.marginTop = '15px';
+                errorDiv.style.color = '#ffaaaa';
+                errorDiv.textContent = `Error details: ${message}`;
+                document.getElementById('error-message').appendChild(errorDiv);
+            };
+            
+            document.body.appendChild(script);
+            
+            // Fallback timer - if game doesn't load within 15 seconds
+            setTimeout(function() {
+                if (document.getElementById('loading-message').style.display === 'block') {
+                    document.getElementById('loading-message').style.display = 'none';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('upload-option').style.display = 'block';
+                    document.getElementById('drop-area').style.display = 'block';
+                }
+            }, 15000);
+        }
         
         // Handle file drop area functionality
         const dropArea = document.getElementById('drop-area');
@@ -221,13 +634,28 @@
         }
         
         function loadRom(file) {
-            // Verify file extension
-            const extension = '.' + file.name.split('.').pop().toLowerCase();
-            const validExtensions = systemConfig[system]?.extensions || [];
+            // Show the emulator container
+            document.getElementById('emulator').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('upload-option').style.display = 'none';
             
-            if (!validExtensions.includes(extension)) {
-                alert(`Invalid file type. Please use ${validExtensions.join(', ')} files for ${systemConfig[system]?.title}`);
-                return;
+            // Get file extension
+            const extension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            // Different validation based on if it's a Pokemon game or not
+            if (game && pokemonGames[game]) {
+                const gameData = pokemonGames[game];
+                if (extension !== gameData.extension) {
+                    alert(`This game requires a ${gameData.extension} file. Please upload the correct ROM type.`);
+                    return;
+                }
+            } else {
+                // System-specific validation
+                const validExtensions = systemConfig[system]?.extensions || [];
+                if (!validExtensions.includes(extension)) {
+                    alert(`Invalid file type. Please use ${validExtensions.join(', ')} files for ${systemConfig[system]?.title}`);
+                    return;
+                }
             }
             
             // Create ROM URL
@@ -239,7 +667,7 @@
         
         function initEmulator(romName, romUrl) {
             // Hide drop area and show loading message
-            dropArea.style.display = 'none';
+            document.getElementById('drop-area').style.display = 'none';
             document.getElementById('loading-message').style.display = 'block';
             
             // Create EmulatorJS elements
@@ -260,8 +688,16 @@
             window.EJS_startOnLoaded = true;
             
             // When emulator is ready
-            script.onload = function() {
+            window.EJS_onGameStart = function() {
                 document.getElementById('loading-message').style.display = 'none';
+            };
+            
+            // Error handling
+            window.EJS_onLoadError = function(message) {
+                console.error("Error loading ROM:", message);
+                document.getElementById('loading-message').style.display = 'none';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('drop-area').style.display = 'block';
             };
             
             document.body.appendChild(script);
