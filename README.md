@@ -16,6 +16,7 @@ A collection of browser-based games built with various JavaScript libraries and 
 - Indiana Jones FP Maze
 - Minesweeper
 - Pokémon Emerald (GBA emulator)
+- Street Fighter II (SNES emulator)
 - And more!
 
 ## Play Online
