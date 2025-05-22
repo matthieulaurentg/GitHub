@@ -13,10 +13,15 @@ const systems = {
         core: "gba",
         extensions: [".gba"]
     },
+    gb: {
+        name: "Game Boy / Game Boy Color",
+        core: "gb",
+        extensions: [".gb", ".gbc"]
+    },
     nes: {
         name: "Nintendo Entertainment System",
         core: "nes",
-        extensions: [".nes"]
+        extensions: [".nes", ".fds"]
     },
     snes: {
         name: "Super Nintendo",
@@ -28,10 +33,110 @@ const systems = {
         core: "n64",
         extensions: [".n64", ".z64", ".v64"]
     },
-    ps: {
+    nds: {
+        name: "Nintendo DS",
+        core: "nds",
+        extensions: [".nds"]
+    },
+    vb: {
+        name: "Virtual Boy",
+        core: "vb",
+        extensions: [".vb", ".vboy"]
+    },
+    arcade: {
+        name: "Arcade",
+        core: "arcade",
+        extensions: [".zip"]
+    },
+    segaMS: {
+        name: "Sega Master System",
+        core: "segaMS",
+        extensions: [".sms"]
+    },
+    segaMD: {
+        name: "Sega Mega Drive / Genesis",
+        core: "segaMD",
+        extensions: [".md", ".gen", ".bin"]
+    },
+    segaGG: {
+        name: "Sega Game Gear",
+        core: "segaGG",
+        extensions: [".gg"]
+    },
+    segaCD: {
+        name: "Sega CD / Mega CD",
+        core: "segaCD",
+        extensions: [".cue", ".iso", ".bin"]
+    },
+    sega32x: {
+        name: "Sega 32X",
+        core: "sega32x",
+        extensions: [".32x", ".bin"]
+    },
+    segaSaturn: {
+        name: "Sega Saturn",
+        core: "segaSaturn",
+        extensions: [".cue", ".iso"]
+    },
+    atari2600: {
+        name: "Atari 2600",
+        core: "atari2600",
+        extensions: [".a26", ".bin"]
+    },
+    atari7800: {
+        name: "Atari 7800",
+        core: "atari7800",
+        extensions: [".a78", ".bin"]
+    },
+    lynx: {
+        name: "Atari Lynx",
+        core: "lynx",
+        extensions: [".lnx"]
+    },
+    jaguar: {
+        name: "Atari Jaguar",
+        core: "jaguar",
+        extensions: [".j64", ".jag"]
+    },
+    psx: {
         name: "PlayStation",
         core: "psx",
-        extensions: [".bin", ".iso"]
+        extensions: [".bin", ".cue", ".iso", ".img"]
+    },
+    psp: {
+        name: "PlayStation Portable",
+        core: "psp",
+        extensions: [".iso", ".cso", ".pbp"]
+    },
+    3do: {
+        name: "3DO",
+        core: "3do",
+        extensions: [".iso", ".cue"]
+    },
+    mame2003: {
+        name: "MAME 2003",
+        core: "mame2003",
+        extensions: [".zip"]
+    },
+    coleco: {
+        name: "ColecoVision",
+        core: "coleco",
+        extensions: [".col", ".rom", ".bin"]
+    },
+    ws: {
+        name: "WonderSwan / Color",
+        core: "ws",
+        extensions: [".ws", ".wsc"]
+    },
+    ngp: {
+        name: "Neo Geo Pocket / Color",
+        core: "ngp",
+        extensions: [".ngp", ".ngc"]
+    },
+    pcengine: {
+        name: "PC Engine / TurboGrafx-16",
+        core: "pcengine",
+        extensions: [".pce", ".cue"]
     }
 };
 
@@ -40,15 +145,24 @@ let selectedSystem = "gba"; // Default system
 let recentGames = JSON.parse(localStorage.getItem('recentGames')) || [];
 
 // DOM elements
-const dragDropArea = document.querySelector('.drag-drop-area');
-const fileInput = document.getElementById('rom-file-input');
-const browseButton = document.getElementById('browse-button');
-const systemButtons = document.querySelectorAll('.system-button');
-const recentGamesList = document.getElementById('recent-games-list');
+let dragDropArea;
+let fileInput;
+let browseButton;
+let systemButtons;
+let recentGamesList;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize UI elements
-    initializeUI();
+    console.log("Document loaded, initializing emulator...");
+    
+    // Initialize DOM elements
+    dragDropArea = document.querySelector('.drag-drop-area');
+    fileInput = document.getElementById('rom-file-input');
+    browseButton = document.getElementById('browse-button');
+    systemButtons = document.querySelectorAll('.system-button');
+    recentGamesList = document.getElementById('recent-games-list');
+    
+    // Add search functionality
+    initializeSearch();
     
     // Add event listeners for Konami code
     setupKonamiCode();
@@ -64,7 +178,98 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update the recent games list
     updateRecentGamesList();
+    
+    // Create the full system selector
+    createSystemSelector();
+    
+    // Initialize system info display
+    updateSystemInfo(selectedSystem);
+    
+    console.log("Emulator initialization complete");
 });
+
+// Initialize search functionality
+function initializeSearch() {
+    const searchInput = document.getElementById('system-search');
+    const searchButton = document.getElementById('search-button');
+    
+    if (searchInput && searchButton) {
+        searchButton.addEventListener('click', () => {
+            filterSystems(searchInput.value);
+        });
+        
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                filterSystems(searchInput.value);
+            }
+        });
+    }
+}
+
+// Filter systems based on search term
+function filterSystems(searchTerm) {
+    if (!searchTerm) {
+        // If search term is empty, show all systems
+        document.querySelectorAll('.system-category').forEach(cat => {
+            cat.style.display = 'block';
+        });
+        document.querySelectorAll('.system-button').forEach(btn => {
+            btn.style.display = 'inline-block';
+        });
+        return;
+    }
+    
+    searchTerm = searchTerm.toLowerCase();
+    
+    // Check each system
+    let foundAny = false;
+    
+    document.querySelectorAll('.system-button').forEach(btn => {
+        const systemKey = btn.dataset.system;
+        const systemName = systems[systemKey]?.name.toLowerCase() || '';
+        
+        if (systemName.includes(searchTerm) || systemKey.includes(searchTerm)) {
+            btn.style.display = 'inline-block';
+            foundAny = true;
+            
+            // Make sure parent category is visible
+            const parentCategory = btn.closest('.system-category-buttons').previousElementSibling;
+            if (parentCategory) {
+                parentCategory.style.display = 'block';
+            }
+        } else {
+            btn.style.display = 'none';
+        }
+    });
+    
+    // Hide empty categories
+    document.querySelectorAll('.system-category').forEach(cat => {
+        const buttons = cat.nextElementSibling.querySelectorAll('.system-button[style*="display: inline-block"]');
+        if (buttons.length === 0) {
+            cat.style.display = 'none';
+        } else {
+            cat.style.display = 'block';
+        }
+    });
+    
+    // Show message if no systems found
+    const systemSelector = document.querySelector('.system-selector');
+    let noResultsMsg = document.getElementById('no-results-message');
+    
+    if (!foundAny) {
+        if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'no-results-message';
+            noResultsMsg.style.padding = '10px';
+            noResultsMsg.style.color = '#ff6666';
+            noResultsMsg.style.textAlign = 'center';
+            noResultsMsg.textContent = `No systems found matching "${searchTerm}"`;
+            systemSelector.appendChild(noResultsMsg);
+        }
+    } else if (noResultsMsg) {
+        noResultsMsg.remove();
+    }
+}
 
 /**
  * Initialize UI elements
@@ -297,7 +502,12 @@ function playRetroSound() {
 
 // Setup drag and drop functionality
 function setupDragAndDrop() {
-    if (!dragDropArea) return;
+    if (!dragDropArea) {
+        console.error("Drag and drop area not found");
+        return;
+    }
+    
+    console.log("Setting up drag and drop functionality");
     
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -316,6 +526,8 @@ function setupDragAndDrop() {
     
     // Handle dropped files
     dragDropArea.addEventListener('drop', handleDrop, false);
+    
+    console.log("Drag and drop setup complete");
 }
 
 function preventDefaults(e) {
@@ -332,60 +544,104 @@ function unhighlight() {
 }
 
 function handleDrop(e) {
+    console.log("File dropped");
+    preventDefaults(e);
+    
     const dt = e.dataTransfer;
-    const files = dt.files;
-    if (files && files.length > 0) {
-        handleFile(files[0]);
+    if (!dt || !dt.files || dt.files.length === 0) {
+        console.error("No files found in drop event");
+        return;
     }
+    
+    const file = dt.files[0];
+    console.log("Dropped file:", file.name);
+    handleFile(file);
 }
 
 // Setup file input for browsing files
 function setupBrowseButton() {
-    if (!browseButton || !fileInput) return;
+    if (!browseButton || !fileInput) {
+        console.error("Browse button or file input not found");
+        return;
+    }
+    
+    console.log("Setting up browse button");
     
     browseButton.addEventListener('click', () => {
+        console.log("Browse button clicked");
         fileInput.click();
     });
     
     fileInput.addEventListener('change', (e) => {
+        console.log("File input changed");
         if (e.target.files && e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
+            const file = e.target.files[0];
+            console.log("Selected file:", file.name);
+            handleFile(file);
         }
     });
+    
+    // Initialize the file input accept attribute
+    updateFileInputAccept();
+    
+    console.log("Browse button setup complete");
 }
 
 // Handle the ROM file
 function handleFile(file) {
-    if (!file) return;
-    
-    // Check if file extension matches selected system
-    const fileName = file.name.toLowerCase();
-    const fileExtension = '.' + fileName.split('.').pop();
-    
-    if (!systems[selectedSystem].extensions.includes(fileExtension)) {
-        const validExtensions = systems[selectedSystem].extensions.join(', ');
-        alert(`Invalid file type for ${systems[selectedSystem].name}. Please use: ${validExtensions}`);
+    if (!file) {
+        console.error("No file provided");
         return;
     }
     
-    // Create object URL for the file
-    const fileUrl = URL.createObjectURL(file);
+    console.log("Handling file:", file.name);
     
-    // Add to recent games
-    addToRecentGames({
-        name: file.name.replace(fileExtension, ''),
-        system: selectedSystem,
-        fileUrl,
-        lastPlayed: new Date().toISOString()
-    });
-    
-    // Launch the emulator
-    launchEmulator(fileUrl, file.name);
+    try {
+        // Check if file extension matches selected system
+        const fileName = file.name.toLowerCase();
+        const fileExtension = '.' + fileName.split('.').pop();
+        
+        console.log("File extension:", fileExtension);
+        console.log("Selected system:", selectedSystem);
+        console.log("Valid extensions:", systems[selectedSystem].extensions);
+        
+        // Check if file extension is valid for the selected system
+        if (!systems[selectedSystem].extensions.includes(fileExtension)) {
+            const validExtensions = systems[selectedSystem].extensions.join(', ');
+            alert(`Invalid file type for ${systems[selectedSystem].name}. Please use: ${validExtensions}`);
+            console.error(`Invalid file type: ${fileExtension}. Expected: ${validExtensions}`);
+            return;
+        }
+        
+        // Create object URL for the file
+        const fileUrl = URL.createObjectURL(file);
+        console.log("Created blob URL:", fileUrl);
+        
+        // Add to recent games
+        addToRecentGames({
+            name: file.name.replace(fileExtension, ''),
+            system: selectedSystem,
+            fileUrl,
+            lastPlayed: new Date().toISOString()
+        });
+        
+        // Launch the emulator
+        console.log("Launching emulator with file:", file.name);
+        launchEmulator(fileUrl, file.name);
+    } catch (error) {
+        console.error("Error handling file:", error);
+        alert(`Error loading ROM: ${error.message}`);
+    }
 }
 
 // Setup system selection buttons
 function setupSystemButtons() {
-    if (!systemButtons) return;
+    if (!systemButtons) {
+        console.log("No system buttons found in DOM yet, will be created dynamically");
+        return;
+    }
+    
+    console.log("Setting up system buttons");
     
     systemButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -397,22 +653,38 @@ function setupSystemButtons() {
             
             // Update selected system
             selectedSystem = button.dataset.system;
+            console.log("Selected system changed to:", selectedSystem);
             
             // Update accepted file types
             updateFileInputAccept();
         });
     });
     
-    // Initialize the file input accept attribute
-    updateFileInputAccept();
+    console.log("System buttons setup complete");
 }
 
 function updateFileInputAccept() {
-    if (!fileInput) return;
+    if (!fileInput) {
+        console.error("File input not found");
+        return;
+    }
     
     // Get all valid extensions for the selected system
     const validExtensions = systems[selectedSystem].extensions.join(',');
     fileInput.setAttribute('accept', validExtensions);
+    console.log("Updated file input accept attribute:", validExtensions);
+    
+    // Update the file input placeholder text
+    const dragDropText = document.querySelector('.drag-drop-area h3');
+    if (dragDropText) {
+        dragDropText.textContent = `Drag & Drop Your ${systems[selectedSystem].name} ROM`;
+    }
+    
+    // Update the accepted file types text
+    const dragDropInstructions = document.querySelector('.drag-drop-area p');
+    if (dragDropInstructions) {
+        dragDropInstructions.textContent = `Accepted formats: ${systems[selectedSystem].extensions.join(', ')}`;
+    }
 }
 
 // Handle recent games
@@ -430,13 +702,17 @@ function addToRecentGames(game) {
     
     // Save to localStorage
     localStorage.setItem('recentGames', JSON.stringify(recentGames));
+    console.log("Updated recent games list:", recentGames);
     
     // Update the UI
     updateRecentGamesList();
 }
 
 function updateRecentGamesList() {
-    if (!recentGamesList) return;
+    if (!recentGamesList) {
+        console.error("Recent games list element not found");
+        return;
+    }
     
     // Clear current list
     recentGamesList.innerHTML = '';
@@ -456,7 +732,7 @@ function updateRecentGamesList() {
         
         const systemTag = document.createElement('span');
         systemTag.className = 'system-tag';
-        systemTag.textContent = systems[game.system].name;
+        systemTag.textContent = systems[game.system] ? systems[game.system].name : game.system;
         
         const gameTitle = document.createElement('span');
         gameTitle.className = 'game-title';
@@ -466,6 +742,7 @@ function updateRecentGamesList() {
         playBtn.className = 'play-again-btn';
         playBtn.textContent = 'Play';
         playBtn.addEventListener('click', () => {
+            console.log("Playing recent game:", game.name);
             launchEmulator(game.fileUrl, game.name);
         });
         
@@ -481,7 +758,110 @@ function updateRecentGamesList() {
 function launchEmulator(fileUrl, fileName) {
     // Create play URL with blob URL parameter
     const playUrl = `play.html?system=${selectedSystem}&blob=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+    console.log("Launching emulator with URL:", playUrl);
     
     // Open the emulator in the same window
     window.location.href = playUrl;
+}
+
+// Create a complete system selector with all supported systems
+function createSystemSelector() {
+    const systemSelector = document.querySelector('.system-selector');
+    if (!systemSelector) return;
+    
+    // Clear existing buttons
+    systemSelector.innerHTML = '';
+    
+    // Create a category structure for better organization
+    const categories = {
+        "nintendo": {
+            name: "Nintendo",
+            systems: ["gb", "gba", "nes", "snes", "n64", "nds", "vb"]
+        },
+        "sega": {
+            name: "Sega",
+            systems: ["segaMS", "segaMD", "segaGG", "segaCD", "sega32x", "segaSaturn"]
+        },
+        "atari": {
+            name: "Atari",
+            systems: ["atari2600", "atari7800", "lynx", "jaguar"]
+        },
+        "sony": {
+            name: "Sony",
+            systems: ["psx", "psp"]
+        },
+        "arcade": {
+            name: "Arcade & Others",
+            systems: ["arcade", "mame2003", "3do", "coleco", "ws", "ngp", "pcengine"]
+        }
+    };
+    
+    // Create the category selectors
+    Object.keys(categories).forEach(categoryKey => {
+        const category = categories[categoryKey];
+        
+        // Create category header
+        const categoryHeader = document.createElement('div');
+        categoryHeader.className = 'system-category';
+        categoryHeader.textContent = category.name;
+        systemSelector.appendChild(categoryHeader);
+        
+        // Create container for this category's buttons
+        const categoryContainer = document.createElement('div');
+        categoryContainer.className = 'system-category-buttons';
+        systemSelector.appendChild(categoryContainer);
+        
+        // Add system buttons for this category
+        category.systems.forEach(sysKey => {
+            if (systems[sysKey]) {
+                const button = document.createElement('button');
+                button.className = 'system-button';
+                button.dataset.system = sysKey;
+                button.textContent = systems[sysKey].name;
+                
+                // Set active class for default system
+                if (sysKey === selectedSystem) {
+                    button.classList.add('active');
+                }
+                
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.system-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    button.classList.add('active');
+                    
+                    // Update selected system
+                    selectedSystem = sysKey;
+                    
+                    // Update accepted file types
+                    updateFileInputAccept();
+                    
+                    // Update system info
+                    updateSystemInfo(sysKey);
+                });
+                
+                categoryContainer.appendChild(button);
+            }
+        });
+    });
+}
+
+// Update system information display
+function updateSystemInfo(systemKey) {
+    const systemDetails = document.getElementById('system-details');
+    if (!systemDetails || !systems[systemKey]) return;
+    
+    const system = systems[systemKey];
+    
+    systemDetails.innerHTML = `
+        <h4>${system.name}</h4>
+        <ul>
+            <li><strong>Core:</strong> ${system.core}</li>
+            <li><strong>File types:</strong> ${system.extensions.join(', ')}</li>
+        </ul>
+        <p>Drag and drop a ${system.extensions[0]} file into the box below to play.</p>
+    `;
 } 

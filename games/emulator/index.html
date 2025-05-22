@@ -57,20 +57,37 @@
         .system-selector {
             margin: 20px 0;
             display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .system-category {
+            color: #0088ff;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .system-category-buttons {
+            display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
+            gap: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
         }
         
         .system-button {
             background-color: #333;
             color: white;
             border: 2px solid #444;
-            padding: 10px 20px;
+            padding: 8px 12px;
             border-radius: 5px;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: bold;
+            font-size: 13px;
         }
         
         .system-button.active {
@@ -133,6 +150,51 @@
         .play-again-btn:hover {
             background-color: #0066cc;
         }
+        
+        .search-bar {
+            display: flex;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .search-input {
+            flex-grow: 1;
+            padding: 10px;
+            background-color: #252525;
+            border: 1px solid #444;
+            border-radius: 5px 0 0 5px;
+            color: white;
+        }
+        
+        .search-button {
+            background-color: #0088ff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        
+        .system-info {
+            margin-top: 20px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .system-info h3 {
+            color: #0088ff;
+            margin-top: 0;
+        }
+        
+        .system-info ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .system-info li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -147,14 +209,22 @@
         
         <div class="emulator-container">
             <div class="game-list">
-                <h2>Play Your Games</h2>
+                <h2>Multi-System Retro Emulator</h2>
                 
-                <div class="system-selector">
-                    <button class="system-button active" data-system="gba">Game Boy Advance</button>
-                    <button class="system-button" data-system="nes">NES</button>
-                    <button class="system-button" data-system="snes">SNES</button>
-                    <button class="system-button" data-system="n64">N64</button>
-                    <button class="system-button" data-system="ps">PlayStation</button>
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="system-search" placeholder="Search for a system...">
+                    <button class="search-button" id="search-button">Search</button>
+                </div>
+                
+                <div class="system-selector" id="system-selector">
+                    <!-- System buttons will be dynamically generated -->
+                </div>
+                
+                <div class="system-info" id="system-info">
+                    <h3>System Information</h3>
+                    <div id="system-details">
+                        <p>Select a system above to see more information.</p>
+                    </div>
                 </div>
                 
                 <div class="drag-drop-area">

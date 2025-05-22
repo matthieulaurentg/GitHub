@@ -116,6 +116,21 @@
             text-align: center;
             color: #ff3333;
         }
+        
+        .system-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 5px;
+            background-color: #0088ff;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -160,36 +175,184 @@
     <script>
         // Systems configuration
         const validSystems = {
+            // Nintendo
             "gba": {
                 name: "Game Boy Advance",
-                core: "gba"
+                core: "gba",
+                icon: "GBA"
+            },
+            "gb": {
+                name: "Game Boy / Color",
+                core: "gb",
+                icon: "GB"
             },
             "nes": {
                 name: "Nintendo Entertainment System",
-                core: "nes"
+                core: "nes",
+                icon: "NES"
             },
             "snes": {
                 name: "Super Nintendo",
-                core: "snes"
+                core: "snes",
+                icon: "SNES"
             },
             "n64": {
                 name: "Nintendo 64",
-                core: "n64"
+                core: "n64",
+                icon: "N64"
             },
-            "ps": {
+            "nds": {
+                name: "Nintendo DS",
+                core: "nds",
+                icon: "NDS"
+            },
+            "vb": {
+                name: "Virtual Boy",
+                core: "vb",
+                icon: "VB"
+            },
+            // Sega
+            "segaMS": {
+                name: "Sega Master System",
+                core: "segaMS",
+                icon: "SMS"
+            },
+            "segaMD": {
+                name: "Sega Mega Drive / Genesis",
+                core: "segaMD",
+                icon: "MD"
+            },
+            "segaGG": {
+                name: "Sega Game Gear",
+                core: "segaGG",
+                icon: "GG"
+            },
+            "segaCD": {
+                name: "Sega CD / Mega CD",
+                core: "segaCD",
+                icon: "SCD"
+            },
+            "sega32x": {
+                name: "Sega 32X",
+                core: "sega32x",
+                icon: "32X"
+            },
+            "segaSaturn": {
+                name: "Sega Saturn",
+                core: "segaSaturn",
+                icon: "SAT"
+            },
+            // Atari
+            "atari2600": {
+                name: "Atari 2600",
+                core: "atari2600",
+                icon: "2600"
+            },
+            "atari7800": {
+                name: "Atari 7800",
+                core: "atari7800",
+                icon: "7800"
+            },
+            "lynx": {
+                name: "Atari Lynx",
+                core: "lynx",
+                icon: "LYNX"
+            },
+            "jaguar": {
+                name: "Atari Jaguar",
+                core: "jaguar",
+                icon: "JAG"
+            },
+            // Sony
+            "psx": {
                 name: "PlayStation",
-                core: "psx"
+                core: "psx",
+                icon: "PSX"
+            },
+            "psp": {
+                name: "PlayStation Portable",
+                core: "psp",
+                icon: "PSP"
+            },
+            // Other
+            "arcade": {
+                name: "Arcade",
+                core: "arcade",
+                icon: "ARC"
+            },
+            "3do": {
+                name: "3DO",
+                core: "3do",
+                icon: "3DO"
+            },
+            "mame2003": {
+                name: "MAME 2003",
+                core: "mame2003",
+                icon: "MAME"
+            },
+            "coleco": {
+                name: "ColecoVision",
+                core: "coleco",
+                icon: "COL"
+            },
+            "ws": {
+                name: "WonderSwan / Color",
+                core: "ws",
+                icon: "WS"
+            },
+            "ngp": {
+                name: "Neo Geo Pocket / Color",
+                core: "ngp",
+                icon: "NGP"
+            },
+            "pcengine": {
+                name: "PC Engine / TurboGrafx-16",
+                core: "pcengine",
+                icon: "PCE"
             }
         };
         
-        // Controls mapping
+        // Controls mapping for different systems
         const controlsMap = {
+            // Nintendo
             'gba': 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift',
+            'gb': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
             'nes': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
             'snes': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift',
             'n64': 'Movement: Arrow Keys | A: X | B: Z | L: A | R: S | Z: D | Start: Enter',
-            'ps': 'D-Pad: Arrow Keys | X: Z | O: X | Square: A | Triangle: S | L1: Q | R1: W | Start: Enter | Select: Shift'
+            'nds': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift',
+            'vb': 'D-Pad: Arrow Keys | A: X | B: Z | L: Q | R: W | Start: Enter | Select: Shift',
+            
+            // Sega
+            'segaMS': 'D-Pad: Arrow Keys | 1: Z | 2: X | Start: Enter',
+            'segaMD': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
+            'segaGG': 'D-Pad: Arrow Keys | 1: Z | 2: X | Start: Enter',
+            'segaCD': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
+            'sega32x': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
+            'segaSaturn': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
+            
+            // Atari
+            'atari2600': 'D-Pad: Arrow Keys | Fire: X | Select: Shift | Reset: Enter',
+            'atari7800': 'D-Pad: Arrow Keys | Fire 1: X | Fire 2: Z | Select: Shift | Reset: Enter',
+            'lynx': 'D-Pad: Arrow Keys | A: X | B: Z | Opt 1: A | Opt 2: S | Start: Enter | Pause: P',
+            'jaguar': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | Pause: Enter',
+            
+            // Sony
+            'psx': 'D-Pad: Arrow Keys | X: Z | O: X | Square: A | Triangle: S | L1: Q | R1: W | Start: Enter | Select: Shift',
+            'psp': 'D-Pad: Arrow Keys | X: Z | O: X | Square: A | Triangle: S | L: Q | R: W | Start: Enter | Select: Shift',
+            
+            // Other
+            'arcade': 'Movement: Arrow Keys | Action 1: Z | Action 2: X | Action 3: C | Action 4: V | Coin: 5 | Start: 1',
+            '3do': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | P: Enter | X: A | L: Q | R: W',
+            'mame2003': 'Movement: Arrow Keys | Action 1: Z | Action 2: X | Action 3: C | Action 4: V | Coin: 5 | Start: 1',
+            'coleco': 'D-Pad: Arrow Keys | Fire 1: Z | Fire 2: X | 1: 1 | 2: 2 | Star: 8 | Hash: 9',
+            'ws': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter',
+            'ngp': 'D-Pad: Arrow Keys | A: X | B: Z | Option: Enter',
+            'pcengine': 'D-Pad: Arrow Keys | I: Z | II: X | Run: Enter | Select: Shift'
         };
+        
+        // Default controls for systems not specifically defined
+        const defaultControls = 'D-Pad: Arrow Keys | A/Button 1: X | B/Button 2: Z | Start: Enter';
         
         document.addEventListener('DOMContentLoaded', () => {
             try {
@@ -213,18 +376,34 @@
                 // Update page with game info
                 const gameTitle = gameName || "Game";
                 document.title = `Playing ${gameTitle}`;
-                document.getElementById('game-title').textContent = gameTitle;
+                
+                // Add system icon if available
+                const titleElement = document.getElementById('game-title');
+                if (titleElement) {
+                    if (validSystems[system].icon) {
+                        titleElement.innerHTML = `<span class="system-icon">${validSystems[system].icon}</span> ${gameTitle}`;
+                    } else {
+                        titleElement.textContent = gameTitle;
+                    }
+                }
                 
                 // Update controls info
                 const controlsInfo = document.getElementById('controls-text');
-                if (controlsInfo && controlsMap[system]) {
-                    controlsInfo.textContent = controlsMap[system];
+                if (controlsInfo) {
+                    controlsInfo.textContent = controlsMap[system] || defaultControls;
                 }
                 
                 // Update EmulatorJS variables
                 window.EJS_core = validSystems[system].core;
                 window.EJS_gameName = gameTitle;
                 window.EJS_gameUrl = decodeURIComponent(blobUrl);
+                
+                // Check if system requires special settings
+                if (system === 'psx' || system === 'psp' || system === 'segaCD' || 
+                    system === 'segaSaturn' || system === '3do') {
+                    // These systems may need BIOS files
+                    window.EJS_biosUrl = ''; // We don't provide BIOS files
+                }
                 
                 // Check if Konami code was activated
                 const konamiActivated = localStorage.getItem('konamiActivated') === 'true';
