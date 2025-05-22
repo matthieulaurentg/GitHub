@@ -87,17 +87,63 @@
             margin: 20px 0;
         }
         #drop-area {
-            border: 2px dashed #00ff88;
+            border: 3px dashed #00ff88;
             border-radius: 10px;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
             margin-top: 20px;
             width: 100%;
             max-width: 800px;
+            background-color: rgba(0, 255, 136, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
         }
         #drop-area.highlight {
             border-color: #ffffff;
-            background-color: rgba(0, 255, 136, 0.1);
+            background-color: rgba(0, 255, 136, 0.2);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        }
+        #drop-area::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+        #drop-area.dragging::before {
+            left: 100%;
+        }
+        .drag-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+        #drop-area:hover .drag-icon {
+            transform: translateY(-5px);
+            opacity: 1;
+        }
+        #drop-area.dragging .drag-icon {
+            transform: scale(1.2);
+        }
+        .upload-instruction {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(255, 255, 136, 0.1);
+            border-radius: 5px;
+            font-weight: bold;
+            color: #ffff88;
+            transition: all 0.3s ease;
+        }
+        #drop-area.highlight .upload-instruction {
+            background-color: rgba(255, 255, 136, 0.25);
         }
         footer {
             background: #2a2a2a;
@@ -186,6 +232,104 @@
             width: 0%;
             transition: width 0.3s;
         }
+        .support-note {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaaaaa;
+        }
+        .system-chip {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background: #3a3a3a;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        #drop-area.success {
+            border-color: #00ff88;
+            background-color: rgba(0, 255, 136, 0.15);
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.6);
+        }
+        
+        @keyframes success-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        #drop-area.success .drag-icon {
+            animation: success-pulse 0.6s ease-in-out;
+            color: #00ff88;
+        }
+        .drag-guide {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .drag-guide.active {
+            display: flex;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .guide-content {
+            background-color: #2a2a2a;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .guide-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        
+        .guide-close:hover {
+            color: white;
+        }
+        
+        .drag-arrow {
+            font-size: 40px;
+            margin: 20px 0;
+            animation: moveDown 1.5s infinite;
+        }
+        
+        @keyframes moveDown {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(20px); }
+        }
+        
+        .demo-rom {
+            display: inline-block;
+            background-color: #3a3a3a;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: bold;
+            border: 2px solid #00ff88;
+            cursor: grab;
+        }
     </style>
 </head>
 <body>
@@ -202,6 +346,15 @@
                 <p id="game-description">Game Description</p>
                 <button id="play-button" class="play-button">Play Now</button>
             </div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button id="home-upload-button" style="background: #ff8800; color: black; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+                📂 Upload Your Own ROM
+            </button>
+            <button id="demo-drag-button" style="background: #8855ff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-left: 10px;">
+                🎮 Demo Drag Animation
+            </button>
         </div>
         
         <div id="loading-message" class="loading-message">
@@ -230,15 +383,49 @@
         <div id="emulator"></div>
         
         <div id="drop-area">
-            <p>Select a system or game from the main menu</p>
-            <p id="drop-instruction" style="font-size: 14px; color: #aaa;">Or drop your own ROM file here to play</p>
-            <input type="file" id="file-input" hidden>
+            <div class="drag-icon">📥</div>
+            <p class="upload-instruction">Drag and drop your ROM file here</p>
+            <button id="upload-button" style="background: #00ff88; color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 10px 0; font-weight: bold;">
+                Select ROM File
+            </button>
+            <div>
+                <span class="system-chip">Game Boy (.gb)</span>
+                <span class="system-chip">GBC (.gbc)</span>
+                <span class="system-chip">GBA (.gba)</span>
+                <span class="system-chip">SNES (.sfc/.smc)</span>
+                <span class="system-chip">NES (.nes)</span>
+                <span class="system-chip">Genesis (.md/.gen)</span>
+            </div>
+            <p class="support-note">All systems supported! The emulator will automatically detect your ROM type.</p>
+            <input type="file" id="file-input" accept=".gb,.gbc,.gba,.sfc,.smc,.nes,.md,.gen,.n64,.z64,.nds" hidden>
         </div>
     </main>
     
     <footer>
         <p>Powered by EmulatorJS - <a href="https://emulatorjs.org/" style="color: #00ff88;" target="_blank">Visit EmulatorJS.org</a></p>
     </footer>
+
+    <!-- Drag Guide Overlay -->
+    <div class="drag-guide" id="drag-guide">
+        <div class="guide-content">
+            <span class="guide-close">&times;</span>
+            <h2 style="color: #00ff88;">How to Drag & Drop ROMs</h2>
+            <p>Drag the ROM file from your computer directly into the drop zone:</p>
+            
+            <div class="demo-rom" draggable="true" id="demo-rom">Mario.gb</div>
+            
+            <div class="drag-arrow">👇</div>
+            
+            <p style="background: rgba(0, 255, 136, 0.1); padding: 15px; border-radius: 10px;">
+                <strong>Drop Zone</strong><br>
+                Drag and drop here to play your games
+            </p>
+            
+            <p style="margin-top: 20px; color: #aaa; font-size: 14px;">
+                Works with Game Boy, SNES, NES, Genesis and more!
+            </p>
+        </div>
+    </div>
 
     <script type="module">
         import * as romGenerator from './roms/stub-rom-content.js';
@@ -442,6 +629,15 @@
                 icon: '💙',
                 extension: '.nds',
                 romUrl: './roms/Pokemon-SoulSilver.nds'
+            },
+            'street-fighter-ii': {
+                title: 'Street Fighter II: The World Warrior',
+                system: 'snes',
+                year: '1992',
+                description: 'The legendary fighting game for the SNES!',
+                icon: '👊',
+                extension: '.sfc',
+                romUrl: './roms/snes/Street-Fighter-II.sfc'
             }
         };
         
@@ -452,7 +648,7 @@
             'gba': './roms/gba-demo.gba',
             'nds': './roms/nds-demo.nds',
             'nes': './roms/nes-demo.nes',
-            'snes': './roms/snes-demo.sfc',
+            'snes': './roms/sfc-demo.sfc',
             'genesis': './roms/genesis-demo.md',
             'n64': './roms/n64-demo.z64'
         };
@@ -589,8 +785,109 @@
         // Handle file drop area functionality
         const dropArea = document.getElementById('drop-area');
         const fileInput = document.getElementById('file-input');
+        const uploadButton = document.getElementById('upload-button');
+        const homeUploadButton = document.getElementById('home-upload-button');
+        const demoDragButton = document.getElementById('demo-drag-button');
         
-        dropArea.addEventListener('click', () => fileInput.click());
+        // Demo drag animation button
+        if (demoDragButton) {
+            demoDragButton.addEventListener('click', () => {
+                const dragGuide = document.getElementById('drag-guide');
+                if (dragGuide) {
+                    dragGuide.classList.add('active');
+                }
+            });
+        }
+        
+        // Close guide when clicking X
+        const guideClose = document.querySelector('.guide-close');
+        if (guideClose) {
+            guideClose.addEventListener('click', () => {
+                const dragGuide = document.getElementById('drag-guide');
+                if (dragGuide) {
+                    dragGuide.classList.remove('active');
+                }
+            });
+        }
+        
+        // Demo ROM element
+        const demoRom = document.getElementById('demo-rom');
+        if (demoRom) {
+            demoRom.addEventListener('dragstart', (e) => {
+                // Add some visual feedback
+                setTimeout(() => {
+                    e.target.style.opacity = '0.4';
+                }, 0);
+            });
+            
+            demoRom.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+                
+                // Close the guide
+                const dragGuide = document.getElementById('drag-guide');
+                if (dragGuide) {
+                    dragGuide.classList.remove('active');
+                }
+                
+                // After guide closes, run the demo
+                setTimeout(() => {
+                    // Run drag demo animation
+                    highlight({ preventDefault: () => {}, stopPropagation: () => {} });
+                    
+                    // Scroll to the drop area
+                    dropArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // After 2 seconds, simulate drop
+                    setTimeout(() => {
+                        // Simulate successful drop
+                        unhighlight({ preventDefault: () => {}, stopPropagation: () => {} });
+                        
+                        dropArea.classList.add('success');
+                        const uploadInstruction = document.querySelector('.upload-instruction');
+                        if (uploadInstruction) {
+                            uploadInstruction.textContent = 'ROM received! Loading...';
+                            uploadInstruction.style.color = '#00ff88';
+                        }
+                        
+                        const dragIcon = document.querySelector('.drag-icon');
+                        if (dragIcon) {
+                            dragIcon.innerHTML = '✅';
+                        }
+                        
+                        // Reset after animation completes
+                        setTimeout(() => {
+                            dropArea.classList.remove('success');
+                            const uploadInstruction = document.querySelector('.upload-instruction');
+                            if (uploadInstruction) {
+                                uploadInstruction.textContent = 'Drag and drop your ROM file here';
+                                uploadInstruction.style.color = '';
+                            }
+                            
+                            const dragIcon = document.querySelector('.drag-icon');
+                            if (dragIcon) {
+                                dragIcon.innerHTML = '📥';
+                            }
+                        }, 2000);
+                    }, 2000);
+                }, 500);
+            });
+        }
+        
+        // Home upload button
+        if (homeUploadButton) {
+            homeUploadButton.addEventListener('click', () => fileInput.click());
+        }
+        
+        // Click to select file via upload button
+        uploadButton.addEventListener('click', () => fileInput.click());
+        
+        // Click to select file via drop area
+        dropArea.addEventListener('click', (e) => {
+            // Only trigger file input if the click wasn't on the button
+            if (e.target !== uploadButton && !uploadButton.contains(e.target)) {
+                fileInput.click();
+            }
+        });
         
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
@@ -609,12 +906,38 @@
             dropArea.addEventListener(eventName, unhighlight, false);
         });
         
-        function highlight() {
+        function highlight(e) {
             dropArea.classList.add('highlight');
+            dropArea.classList.add('dragging');
+            
+            // Show a helpful message
+            const uploadInstruction = document.querySelector('.upload-instruction');
+            if (uploadInstruction) {
+                uploadInstruction.textContent = 'Yes! Drop it here...';
+            }
+            
+            // Pulse animation for the drag icon
+            const dragIcon = document.querySelector('.drag-icon');
+            if (dragIcon) {
+                dragIcon.innerHTML = '👇';
+            }
         }
         
-        function unhighlight() {
+        function unhighlight(e) {
             dropArea.classList.remove('highlight');
+            dropArea.classList.remove('dragging');
+            
+            // Reset the message
+            const uploadInstruction = document.querySelector('.upload-instruction');
+            if (uploadInstruction) {
+                uploadInstruction.textContent = 'Drag and drop your ROM file here';
+            }
+            
+            // Reset the icon
+            const dragIcon = document.querySelector('.drag-icon');
+            if (dragIcon) {
+                dragIcon.innerHTML = '📥';
+            }
         }
         
         dropArea.addEventListener('drop', handleDrop, false);
@@ -623,7 +946,26 @@
         function handleDrop(e) {
             const dt = e.dataTransfer;
             const files = dt.files;
-            handleFiles({ target: { files } });
+            
+            if (files.length) {
+                // Show success animation before processing
+                dropArea.classList.add('success');
+                const uploadInstruction = document.querySelector('.upload-instruction');
+                if (uploadInstruction) {
+                    uploadInstruction.textContent = 'ROM received! Loading...';
+                    uploadInstruction.style.color = '#00ff88';
+                }
+                
+                const dragIcon = document.querySelector('.drag-icon');
+                if (dragIcon) {
+                    dragIcon.innerHTML = '✅';
+                }
+                
+                // Process the file after a short delay for visual feedback
+                setTimeout(() => {
+                    handleFiles({ target: { files } });
+                }, 700);
+            }
         }
         
         function handleFiles(e) {
@@ -638,34 +980,32 @@
             document.getElementById('emulator').style.display = 'block';
             document.getElementById('error-message').style.display = 'none';
             document.getElementById('upload-option').style.display = 'none';
+            document.getElementById('loading-message').style.display = 'block';
             
             // Get file extension
             const extension = '.' + file.name.split('.').pop().toLowerCase();
             
-            // Different validation based on if it's a Pokemon game or not
-            if (game && pokemonGames[game]) {
-                const gameData = pokemonGames[game];
-                if (extension !== gameData.extension) {
-                    alert(`This game requires a ${gameData.extension} file. Please upload the correct ROM type.`);
-                    return;
+            // Determine system based on file extension
+            let detectedSystem = system;
+            Object.keys(systemConfig).forEach(sys => {
+                if (systemConfig[sys].extensions.includes(extension)) {
+                    detectedSystem = sys;
                 }
-            } else {
-                // System-specific validation
-                const validExtensions = systemConfig[system]?.extensions || [];
-                if (!validExtensions.includes(extension)) {
-                    alert(`Invalid file type. Please use ${validExtensions.join(', ')} files for ${systemConfig[system]?.title}`);
-                    return;
-                }
-            }
+            });
             
             // Create ROM URL
             const romUrl = URL.createObjectURL(file);
             
-            // Initialize EmulatorJS
-            initEmulator(file.name, romUrl);
+            // Log debug info for Game Boy files to verify they're being detected correctly
+            if (extension === '.gb' || extension === '.gbc' || extension === '.gba') {
+                console.log(`Game Boy ROM detected: ${file.name} (${detectedSystem}) - Size: ${file.size} bytes`);
+            }
+            
+            // Initialize EmulatorJS with detected system
+            initEmulator(file.name, romUrl, detectedSystem);
         }
         
-        function initEmulator(romName, romUrl) {
+        function initEmulator(romName, romUrl, systemType) {
             // Hide drop area and show loading message
             document.getElementById('drop-area').style.display = 'none';
             document.getElementById('loading-message').style.display = 'block';
@@ -683,13 +1023,17 @@
             window.EJS_gameName = romName;
             window.EJS_biosUrl = '';
             window.EJS_gameUrl = romUrl;
-            window.EJS_core = systemConfig[system]?.core || 'nes';
+            window.EJS_core = systemConfig[systemType]?.core || 'nes';
             window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
             window.EJS_startOnLoaded = true;
+            
+            // Update display while loading
+            document.getElementById('system-title').innerText = `Playing ${romName} on ${systemConfig[systemType]?.title}`;
             
             // When emulator is ready
             window.EJS_onGameStart = function() {
                 document.getElementById('loading-message').style.display = 'none';
+                console.log(`Game started: ${romName} (${systemType})`);
             };
             
             // Error handling

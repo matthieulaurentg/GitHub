@@ -241,6 +241,11 @@
             <p>GBA classic using EmulatorJS</p>
             <a href="./pokemon_emulator/index.html">Play Pokémon</a>
         </div>
+        <div class="game-card">
+            <h2>Street Fighter II</h2>
+            <p>Legendary SNES fighting game</p>
+            <a href="./emulator/index.html?system=snes&game=street-fighter-ii">Play Street Fighter II</a>
+        </div>
     </div>
 
     <!-- EmulatorJS Secret Modal -->
@@ -253,6 +258,7 @@
             <div class="tab-container">
                 <div class="tab active" data-tab="systems">Systems</div>
                 <div class="tab" data-tab="pokemon">Pokémon Games</div>
+                <div class="tab" data-tab="street-fighter">Street Fighter</div>
             </div>
             
             <div id="systems-tab" class="tab-content active">
@@ -368,6 +374,16 @@
                     </div>
                 </div>
             </div>
+            
+            <div id="street-fighter-tab" class="tab-content">
+                <div class="rom-selector">
+                    <div class="rom-card" data-system="snes" data-game="street-fighter-ii">
+                        <h3>Street Fighter II: The World Warrior</h3>
+                        <p>SNES (1992)</p>
+                        <span style="font-size:24px;">👊</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -410,12 +426,23 @@
         });
 
         // Handle system selection
-        const romCards = document.querySelectorAll('.rom-card');
+        const romCards = document.querySelectorAll('#systems-tab .rom-card');
         romCards.forEach(card => {
             card.addEventListener('click', function() {
                 const system = this.getAttribute('data-system');
                 // Navigate to the emulator page
                 window.location.href = `./emulator/index.html?system=${system}`;
+            });
+        });
+        
+        // Handle Street Fighter selection
+        const sfCards = document.querySelectorAll('#street-fighter-tab .rom-card');
+        sfCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const system = this.getAttribute('data-system');
+                const game = this.getAttribute('data-game');
+                // Navigate to the emulator page with both parameters
+                window.location.href = `./emulator/index.html?system=${system}&game=${game}`;
             });
         });
 
