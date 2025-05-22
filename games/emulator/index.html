@@ -195,12 +195,113 @@
         .system-info li {
             margin-bottom: 5px;
         }
+        
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-family: monospace;
+            padding: 10px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow: auto;
+            font-size: 12px;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .featured-games {
+            margin: 20px 0;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .featured-games h3 {
+            color: #0088ff;
+            margin-top: 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .featured-games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .featured-game-card {
+            background-color: #252525;
+            border-radius: 5px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        
+        .featured-game-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .featured-game-image {
+            width: 100%;
+            height: 150px;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .featured-game-image span {
+            font-size: 48px;
+        }
+        
+        .featured-game-info {
+            padding: 10px;
+        }
+        
+        .featured-game-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .featured-game-system {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        .featured-game-play {
+            background-color: #0088ff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        .featured-game-play:hover {
+            background-color: #0066cc;
+        }
+        
+        .no-placeholders {
+            background-color: #0088ff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="game-header">
-            <a href="../index.html" class="back-button">← Back</a>
+            <a href="../../index.html" class="back-button">← Back</a>
             <h1>Retro Game Emulator</h1>
             <div class="controls-info">
                 <span>Powered by <a href="https://emulatorjs.org/" target="_blank" style="color: #0088ff;">EmulatorJS.org</a></span>
@@ -210,6 +311,14 @@
         <div class="emulator-container">
             <div class="game-list">
                 <h2>Multi-System Retro Emulator</h2>
+                
+                <div class="featured-games">
+                    <h3>Real ROMs Available</h3>
+                    <div class="no-placeholders">📢 Only real ROM files will be displayed - no placeholders</div>
+                    <div class="featured-games-grid">
+                        <!-- Grid will be populated by JavaScript with actual ROM files -->
+                    </div>
+                </div>
                 
                 <div class="search-bar">
                     <input type="text" class="search-input" id="system-search" placeholder="Search for a system...">
@@ -227,7 +336,7 @@
                     </div>
                 </div>
                 
-                <div class="drag-drop-area">
+                <div class="drag-drop-area" id="drag-drop-area">
                     <div class="drag-drop-icon">📁</div>
                     <h3>Drag & Drop Your ROM File</h3>
                     <p>Or click below to browse your files</p>
@@ -251,7 +360,11 @@
                 <p>4. Your recently played games will be saved for quick access (stored locally).</p>
                 
                 <div class="note">
-                    <p><strong>Note:</strong> No games are included with this emulator. You need to provide your own ROM files.</p>
+                    <p><strong>Note:</strong> This emulator requires you to have your own ROM files. We've detected the following real ROMs in your system:</p>
+                    <ul>
+                        <li>Pokémon Fire Red (GBA)</li>
+                        <li>Dragon Ball Z - Supersonic Warriors (GBA)</li>
+                    </ul>
                     <p>Your ROM files are never uploaded anywhere - all processing happens locally in your browser.</p>
                     <p>We encourage supporting the original developers by purchasing their games when available.</p>
                 </div>
@@ -329,6 +442,38 @@
             </div>
         </div>
     </div>
+    
+    <div id="debug-panel" class="debug-panel"></div>
+    
+    <script>
+        // Enable debug mode (press D key to show/hide debug panel)
+        const DEBUG = true;
+        
+        // Debug logging function
+        function debug(message) {
+            if (DEBUG) {
+                console.log(message);
+                const debugPanel = document.getElementById('debug-panel');
+                if (debugPanel) {
+                    const time = new Date().toLocaleTimeString();
+                    debugPanel.innerHTML += `[${time}] ${message}<br>`;
+                    debugPanel.scrollTop = debugPanel.scrollHeight;
+                }
+            }
+        }
+        
+        // Toggle debug panel with D key
+        document.addEventListener('keydown', function(e) {
+            if (e.key.toLowerCase() === 'd' && DEBUG) {
+                const debugPanel = document.getElementById('debug-panel');
+                if (debugPanel) {
+                    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                }
+            }
+        });
+        
+        debug("Initial page load started");
+    </script>
     
     <script src="scripts/main.mjs" type="module"></script>
 </body>

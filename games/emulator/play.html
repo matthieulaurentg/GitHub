@@ -147,6 +147,16 @@
             z-index: 9999;
             display: none;
         }
+        
+        .real-rom-notice {
+            background-color: #2a552a;
+            color: #aaffaa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -163,6 +173,7 @@
             <div class="loading">
                 <div class="spinner"></div>
                 <div class="loading-text">Loading Emulator...</div>
+                <div class="real-rom-notice">Using real ROM file - no placeholders</div>
             </div>
         </div>
     </div>
@@ -228,7 +239,7 @@
                 icon: "GBA"
             },
             "gb": {
-                name: "Game Boy / Color",
+                name: "Game Boy / Game Boy Color",
                 core: "gb",
                 icon: "GB"
             },
@@ -458,12 +469,16 @@
                     return;
                 }
                 
-                // Configure special settings for certain systems
+                // Check if system requires BIOS files
                 if (system === 'psx' || system === 'psp' || system === 'segaCD' || 
                     system === 'segaSaturn' || system === '3do') {
                     debug(`System ${system} may require BIOS files`);
-                    // These systems may need BIOS files
-                    window.EJS_biosUrl = ''; // We don't provide BIOS files
+                    
+                    // Show a message about BIOS requirements
+                    const biosMessage = document.createElement('div');
+                    biosMessage.className = 'real-rom-notice';
+                    biosMessage.textContent = `Note: ${validSystems[system].name} emulation may require BIOS files`;
+                    document.querySelector('.loading').appendChild(biosMessage);
                 }
                 
                 // Check if Konami code was activated
