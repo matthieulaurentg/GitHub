@@ -131,6 +131,22 @@
             font-weight: bold;
             color: white;
         }
+        
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            font-family: monospace;
+            padding: 10px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow: auto;
+            font-size: 12px;
+            z-index: 9999;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -151,8 +167,36 @@
         </div>
     </div>
     
+    <div id="debug-panel" class="debug-panel"></div>
+    
     <!-- EmulatorJS Scripts -->
     <script type="text/javascript">
+        // Enable debug mode (press D key to show/hide debug panel)
+        const DEBUG = true;
+        
+        // Debug logging function
+        function debug(message) {
+            if (DEBUG) {
+                console.log(message);
+                const debugPanel = document.getElementById('debug-panel');
+                if (debugPanel) {
+                    const time = new Date().toLocaleTimeString();
+                    debugPanel.innerHTML += `[${time}] ${message}<br>`;
+                    debugPanel.scrollTop = debugPanel.scrollHeight;
+                }
+            }
+        }
+        
+        // Toggle debug panel
+        document.addEventListener('keydown', function(e) {
+            if (e.key.toLowerCase() === 'd' && DEBUG) {
+                const debugPanel = document.getElementById('debug-panel');
+                if (debugPanel) {
+                    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                }
+            }
+        });
+        
         // EmulatorJS configuration variables
         var EJS_player = '#game';
         var EJS_core = '';
@@ -169,6 +213,8 @@
             'shader': 'crt',
             'volume': 0.7
         };
+        
+        debug("EmulatorJS variables initialized");
     </script>
     
     <!-- Script for handling URL parameters and game loading -->
@@ -355,12 +401,17 @@
         const defaultControls = 'D-Pad: Arrow Keys | A/Button 1: X | B/Button 2: Z | Start: Enter';
         
         document.addEventListener('DOMContentLoaded', () => {
+            debug("Document loaded, initializing emulator...");
+            
             try {
                 // Get URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
                 const system = urlParams.get('system');
                 const blobUrl = urlParams.get('blob');
                 const gameName = urlParams.get('name');
+                
+                debug(`URL Parameters - System: ${system}, Game: ${gameName}`);
+                debug(`Blob URL: ${blobUrl ? 'Present' : 'Missing'}`);
                 
                 // Validate parameters
                 if (!system || !blobUrl) {
@@ -396,11 +447,21 @@
                 // Update EmulatorJS variables
                 window.EJS_core = validSystems[system].core;
                 window.EJS_gameName = gameTitle;
-                window.EJS_gameUrl = decodeURIComponent(blobUrl);
                 
-                // Check if system requires special settings
+                // Decode and set the blob URL
+                try {
+                    window.EJS_gameUrl = decodeURIComponent(blobUrl);
+                    debug(`Game URL set to: ${window.EJS_gameUrl.substring(0, 50)}...`);
+                } catch (e) {
+                    debug(`Error decoding blob URL: ${e.message}`);
+                    showError(`Error decoding ROM URL: ${e.message}`);
+                    return;
+                }
+                
+                // Configure special settings for certain systems
                 if (system === 'psx' || system === 'psp' || system === 'segaCD' || 
                     system === 'segaSaturn' || system === '3do') {
+                    debug(`System ${system} may require BIOS files`);
                     // These systems may need BIOS files
                     window.EJS_biosUrl = ''; // We don't provide BIOS files
                 }
@@ -408,6 +469,7 @@
                 // Check if Konami code was activated
                 const konamiActivated = localStorage.getItem('konamiActivated') === 'true';
                 if (konamiActivated) {
+                    debug("Cheat mode is active");
                     // Add cheat mode options
                     window.EJS_defaultOptions.cheats = true;
                     window.EJS_defaultOptions.fastForward = true;
@@ -427,10 +489,22 @@
                     document.querySelector('.game-header').appendChild(cheatIndicator);
                 }
                 
+                // Set up error handling for EmulatorJS
+                window.EJS_onGameStart = function() {
+                    debug("Game started successfully");
+                };
+                
+                window.EJS_onError = function(errorCode, errorText) {
+                    debug(`EmulatorJS Error: ${errorCode} - ${errorText}`);
+                    showError(`EmulatorJS Error: ${errorText}`);
+                };
+                
                 // Load the EmulatorJS script
+                debug("Loading EmulatorJS loader script...");
                 loadEmulatorScript();
                 
             } catch (error) {
+                debug(`Error initializing emulator: ${error.message}`);
                 console.error('Error initializing emulator:', error);
                 showError(`Error initializing emulator: ${error.message}`);
             }
@@ -440,7 +514,11 @@
         function loadEmulatorScript() {
             const script = document.createElement('script');
             script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-            script.onerror = () => {
+            script.onload = () => {
+                debug("EmulatorJS loader script loaded successfully");
+            };
+            script.onerror = (e) => {
+                debug(`Failed to load EmulatorJS: ${e}`);
                 showError("Failed to load EmulatorJS. Please check your internet connection and try again.");
             };
             document.body.appendChild(script);
@@ -448,6 +526,7 @@
         
         // Show error message
         function showError(message) {
+            debug(`Showing error: ${message}`);
             document.getElementById('game-title').textContent = "Error";
             document.getElementById('controls-text').textContent = "";
             
@@ -458,6 +537,15 @@
                         <h2>Error</h2>
                         <p>${message}</p>
                         <p>Please <a href="index.html" style="color: #0088ff;">return to the game list</a> and try again.</p>
+                        <div style="margin-top: 20px; font-size: 12px; color: #888;">
+                            <p>Troubleshooting tips:</p>
+                            <ul style="text-align: left;">
+                                <li>Make sure your ROM file is valid and not corrupted</li>
+                                <li>Try refreshing the page</li>
+                                <li>Try a different browser</li>
+                                <li>Press D to show debug information</li>
+                            </ul>
+                        </div>
                     </div>
                 `;
             }
@@ -473,6 +561,7 @@
                 
                 if (konamiPosition === konamiCode.length) {
                     // Konami code completed!
+                    debug("Konami code activated!");
                     localStorage.setItem('konamiActivated', 'true');
                     
                     // Show a fun message
