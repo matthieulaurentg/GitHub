@@ -1,0 +1,254 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #f0f0f0;
+    line-height: 1.6;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    min-height: 100vh;
+}
+
+.game-header {
+    padding: 20px;
+    background-color: #252525;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.back-button {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    color: #0088ff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-button:hover {
+    text-decoration: underline;
+}
+
+h1 {
+    color: #0088ff;
+    margin-bottom: 10px;
+}
+
+h2 {
+    color: #0088ff;
+    margin: 20px 0 15px 0;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+h3 {
+    color: #0088ff;
+    margin: 15px 0 10px 0;
+}
+
+.controls-info {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: #b0b0b0;
+}
+
+.emulator-container {
+    padding: 20px;
+    display: flex;
+    gap: 30px;
+}
+
+/* Game List Styles */
+.game-list {
+    flex: 1;
+    min-width: 300px;
+}
+
+.system-section {
+    margin-bottom: 25px;
+    background-color: #252525;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.system-section h3 {
+    color: #0088ff;
+    margin-top: 0;
+}
+
+.system-section ul {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+.system-section li {
+    margin: 10px 0;
+}
+
+.game-link {
+    color: #f0f0f0;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.game-link:hover {
+    background-color: #333;
+    border-left-color: #0088ff;
+    padding-left: 15px;
+}
+
+/* Instructions Styles */
+.instructions {
+    flex: 2;
+    min-width: 300px;
+}
+
+.instructions p {
+    margin-bottom: 10px;
+}
+
+.note {
+    background-color: #252525;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border-left: 4px solid #0088ff;
+}
+
+.controls-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.controls-table th, .controls-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+
+.controls-table th {
+    background-color: #252525;
+    color: #0088ff;
+}
+
+.controls-table tr:hover {
+    background-color: #252525;
+}
+
+/* Secret tip styling */
+.secret-tip {
+    margin-top: 30px;
+    padding: 12px;
+    background-color: #252525;
+    border-radius: 8px;
+    border-left: 4px solid #ff8800;
+    color: #ff8800;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-style: italic;
+}
+
+.secret-tip:hover {
+    background-color: #333;
+    transform: scale(1.02);
+}
+
+/* Emulator screen styles */
+.emulator-screen {
+    width: 100%;
+    background-color: #000;
+    aspect-ratio: 16/9;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Hidden Easter Egg element */
+.easter-egg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.easter-egg.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.easter-egg h2 {
+    color: #ff8800;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.easter-egg p {
+    color: #f0f0f0;
+    margin-bottom: 30px;
+    max-width: 600px;
+    text-align: center;
+}
+
+.easter-egg button {
+    background-color: #ff8800;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.easter-egg button:hover {
+    background-color: #cc6c00;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .emulator-container {
+        flex-direction: column;
+    }
+    
+    .game-list, .instructions {
+        min-width: 100%;
+    }
+} 
