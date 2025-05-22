@@ -1,6 +1,61 @@
 # RetroGame Emulator
 
-This is a web-based emulator for retro gaming systems, powered by [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS).
+This is a web-based emulator for retro gaming systems, powered by [EmulatorJS](https://emulatorjs.org/).
+
+## How to Use
+
+1. **Select a System** - Choose from Game Boy Advance, NES, SNES, N64, or PlayStation
+2. **Provide Your ROM** - Drag and drop your ROM file into the drop zone or use the Browse button
+3. **Play** - The emulator will load automatically and you can start playing
+
+Your recently played games will be saved in your browser for quick access. No ROMs are included with this emulator - you need to provide your own files.
+
+## Features
+
+- **Drag & Drop Interface** - Easily load your own ROM files
+- **Multiple Systems** - Supports Game Boy Advance, NES, SNES, N64, and PlayStation
+- **Save States** - Save your progress at any time
+- **Recent Games** - Quick access to your recently played games
+- **Mobile Support** - Touch controls for mobile devices
+- **Game Saves** - All saves stored locally in your browser
+- **Gamepad Support** - Connect a controller for the best experience
+
+## How It Works
+
+This implementation uses the official EmulatorJS CDN at `https://cdn.emulatorjs.org/stable/data/` to load all required emulator files. The emulator runs entirely in your browser - no files are uploaded to any server.
+
+## Supported Systems and File Types
+
+- **Game Boy Advance (GBA)** - `.gba` files
+- **Nintendo Entertainment System (NES)** - `.nes` files
+- **Super Nintendo (SNES)** - `.sfc`, `.smc` files
+- **Nintendo 64 (N64)** - `.n64`, `.z64`, `.v64` files
+- **PlayStation (PS1)** - `.bin`, `.iso` files
+
+## Secret Features
+
+Find the hidden easter egg by entering the Konami Code on any page:
+↑ ↑ ↓ ↓ ← → ← → B A
+
+## Legal Notice
+
+- The emulator is provided for educational and preservation purposes only
+- No ROMs are included or distributed with this emulator
+- You should only use ROM files for games that you legally own
+- Support game developers by purchasing their games
+
+## Credits
+
+This implementation uses [EmulatorJS](https://emulatorjs.org/), which is a web-based frontend for RetroArch.
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure you're using a modern browser
+2. Check that your ROM files are compatible with the emulator
+3. Try clearing your browser cache and reloading the page
+4. Some games may require specific BIOS files to work properly
 
 ## Setup
 
@@ -24,18 +79,6 @@ games/emulator/roms/snes/zelda-link-to-the-past.sfc
 games/emulator/roms/snes/street-fighter-2.sfc
 ```
 
-## Legal Notice
-
-It's important to note that you should only use ROM files for games that you legally own. The emulator itself is legal, but distributing ROMs or downloading ROMs for games you don't own may violate copyright laws.
-
-## Features
-
-- Supports Game Boy Advance, NES, and SNES games
-- Save states functionality
-- Mobile-friendly touch controls
-- Keyboard support for desktop play
-- Special cheat codes (activated with Konami Code)
-
 ## Konami Code
 
 Find the hidden easter egg by entering the Konami Code on the emulator page:
@@ -58,3 +101,54 @@ The emulator currently supports these systems:
 
 - [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS) - The core emulation technology
 - Game artwork and descriptions are used for educational purposes only 
+
+# EmulatorJS Implementation
+
+This emulator implementation uses [EmulatorJS](https://emulatorjs.org/) to provide retro gaming capabilities directly in the browser.
+
+## Features
+
+- Supports multiple systems (NES, SNES, GBA)
+- Uses the stable CDN version of EmulatorJS
+- Save states and game progress are stored in your browser
+- Mobile-friendly with touch controls
+- Gamepad support for desktop users
+
+## How It Works
+
+This implementation uses the official EmulatorJS CDN at `https://cdn.emulatorjs.org/stable/data/` to load all required emulator files. No local installation of EmulatorJS is required.
+
+## Adding Your Own ROMs
+
+To play games, you need to replace the placeholder ROM files with your own legally owned ROM files. The placeholder files are located in:
+
+- `roms/gba/` - For Game Boy Advance games
+- `roms/nes/` - For Nintendo Entertainment System games
+- `roms/snes/` - For Super Nintendo games
+
+Make sure to keep the filenames the same as the placeholders to ensure compatibility.
+
+## Legal Notice
+
+- Only use ROM files for games that you legally own
+- The emulator is provided for educational and preservation purposes only
+- Support game developers by purchasing their games
+
+## Credits
+
+This implementation uses [EmulatorJS](https://emulatorjs.org/), which is a web-based frontend for RetroArch.
+
+## Adding More Games
+
+To add more games:
+
+1. Add the ROM file to the appropriate system folder
+2. Update the game list in `play.html` to include the new game
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure you're using a modern browser
+2. Check that your ROM files are compatible with the emulator
+3. Try using the latest version of EmulatorJS by changing the CDN URL in `play.html` 

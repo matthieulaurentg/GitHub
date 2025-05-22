@@ -6,12 +6,57 @@
 import { initializeROMs } from './rom-downloader.mjs';
 import { initializeAllROMs } from './rom-simulator.mjs';
 
+// System definitions with their cores and file extensions
+const systems = {
+    gba: {
+        name: "Game Boy Advance",
+        core: "gba",
+        extensions: [".gba"]
+    },
+    nes: {
+        name: "Nintendo Entertainment System",
+        core: "nes",
+        extensions: [".nes"]
+    },
+    snes: {
+        name: "Super Nintendo",
+        core: "snes",
+        extensions: [".sfc", ".smc"]
+    },
+    n64: {
+        name: "Nintendo 64",
+        core: "n64",
+        extensions: [".n64", ".z64", ".v64"]
+    },
+    ps: {
+        name: "PlayStation",
+        core: "psx",
+        extensions: [".bin", ".iso"]
+    }
+};
+
+// Initialize variables
+let selectedSystem = "gba"; // Default system
+let recentGames = JSON.parse(localStorage.getItem('recentGames')) || [];
+
+// DOM elements
+const dragDropArea = document.querySelector('.drag-drop-area');
+const fileInput = document.getElementById('rom-file-input');
+const browseButton = document.getElementById('browse-button');
+const systemButtons = document.querySelectorAll('.system-button');
+const recentGamesList = document.getElementById('recent-games-list');
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize UI elements
     initializeUI();
     
     // Add event listeners for Konami code
     setupKonamiCode();
+    
+    setupDragAndDrop();
+    setupSystemButtons();
+    setupBrowseButton();
+    updateRecentGamesList();
 });
 
 /**
@@ -241,4 +286,177 @@ function playRetroSound() {
     } catch (e) {
         console.log('Web Audio API not supported');
     }
+}
+
+// Setup drag and drop functionality
+function setupDragAndDrop() {
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop area when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    // Remove highlight when item is dragged away
+    ['dragleave', 'drop'].forEach(eventName => {
+        dragDropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    // Handle dropped files
+    dragDropArea.addEventListener('drop', handleDrop, false);
+    
+    // Handle file input changes
+    fileInput.addEventListener('change', handleFiles, false);
+}
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function highlight() {
+    dragDropArea.classList.add('highlight');
+}
+
+function unhighlight() {
+    dragDropArea.classList.remove('highlight');
+}
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles({ target: { files } });
+}
+
+function handleFiles(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check if file extension matches selected system
+    const fileName = file.name.toLowerCase();
+    const fileExtension = '.' + fileName.split('.').pop();
+    
+    if (!systems[selectedSystem].extensions.includes(fileExtension)) {
+        const validExtensions = systems[selectedSystem].extensions.join(', ');
+        alert(`Invalid file type for ${systems[selectedSystem].name}. Please use: ${validExtensions}`);
+        return;
+    }
+    
+    // Create object URL for the file
+    const fileUrl = URL.createObjectURL(file);
+    
+    // Add to recent games
+    addToRecentGames({
+        name: file.name.replace(fileExtension, ''),
+        system: selectedSystem,
+        fileUrl,
+        lastPlayed: new Date().toISOString()
+    });
+    
+    // Launch the emulator
+    launchEmulator(fileUrl, file.name);
+}
+
+// Setup system selection buttons
+function setupSystemButtons() {
+    systemButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            systemButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            
+            // Update selected system
+            selectedSystem = button.dataset.system;
+            
+            // Update accepted file types
+            updateFileInputAccept();
+        });
+    });
+}
+
+function updateFileInputAccept() {
+    // Get all valid extensions for the selected system
+    const validExtensions = systems[selectedSystem].extensions.join(',');
+    fileInput.setAttribute('accept', validExtensions);
+}
+
+// Setup browse button
+function setupBrowseButton() {
+    browseButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+}
+
+// Handle recent games
+function addToRecentGames(game) {
+    // Remove if already in list
+    recentGames = recentGames.filter(g => !(g.name === game.name && g.system === game.system));
+    
+    // Add to top of list
+    recentGames.unshift(game);
+    
+    // Keep only 10 most recent
+    if (recentGames.length > 10) {
+        recentGames = recentGames.slice(0, 10);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('recentGames', JSON.stringify(recentGames));
+    
+    // Update the UI
+    updateRecentGamesList();
+}
+
+function updateRecentGamesList() {
+    // Clear current list
+    recentGamesList.innerHTML = '';
+    
+    // If no recent games, show message
+    if (recentGames.length === 0) {
+        const emptyMessage = document.createElement('li');
+        emptyMessage.className = 'empty-message';
+        emptyMessage.textContent = 'No recently played games';
+        recentGamesList.appendChild(emptyMessage);
+        return;
+    }
+    
+    // Add each game to the list
+    recentGames.forEach(game => {
+        const li = document.createElement('li');
+        
+        const systemTag = document.createElement('span');
+        systemTag.className = 'system-tag';
+        systemTag.textContent = systems[game.system].name;
+        
+        const gameTitle = document.createElement('span');
+        gameTitle.className = 'game-title';
+        gameTitle.textContent = game.name;
+        
+        const playBtn = document.createElement('button');
+        playBtn.className = 'play-again-btn';
+        playBtn.textContent = 'Play';
+        playBtn.addEventListener('click', () => {
+            launchEmulator(game.fileUrl, game.name);
+        });
+        
+        li.appendChild(systemTag);
+        li.appendChild(gameTitle);
+        li.appendChild(playBtn);
+        
+        recentGamesList.appendChild(li);
+    });
+}
+
+// Launch the emulator
+function launchEmulator(fileUrl, fileName) {
+    // Create play URL with blob URL parameter
+    const playUrl = `play.html?system=${selectedSystem}&blob=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+    
+    // Open the emulator in the same window
+    window.location.href = playUrl;
 } 
