@@ -119,6 +119,27 @@ h3 {
     padding-left: 15px;
 }
 
+/* ROM Status Indicators */
+.rom-ready {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #00cc00;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.rom-loading {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ffaa00;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
 /* Instructions Styles */
 .instructions {
     flex: 2;
@@ -190,6 +211,28 @@ h3 {
     overflow: hidden;
 }
 
+/* EmulatorJS Custom Styling */
+#game {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+/* Style EmulatorJS menu */
+.ejs--3def36d861be8c7a8ce326d7e2434b87 {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+/* Style menu buttons */
+.ejs--de9288f431e3c432a093abc3eba7f347 {
+    background-color: #333 !important;
+    border-radius: 4px !important;
+}
+
+.ejs--de9288f431e3c432a093abc3eba7f347:hover {
+    background-color: #0088ff !important;
+}
+
 /* Hidden Easter Egg element */
 .easter-egg {
     position: fixed;
@@ -242,6 +285,42 @@ h3 {
     background-color: #cc6c00;
 }
 
+/* Feature Cards */
+.emulator-features {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.feature-card {
+    flex: 1;
+    min-width: 200px;
+    background-color: #252525;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-card h3 {
+    color: #0088ff;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.feature-card p {
+    margin: 0;
+    font-size: 14px;
+    color: #cccccc;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .emulator-container {
@@ -250,5 +329,13 @@ h3 {
     
     .game-list, .instructions {
         min-width: 100%;
+    }
+
+    .emulator-features {
+        flex-direction: column;
+    }
+
+    .feature-card {
+        margin-bottom: 10px;
     }
 } 
