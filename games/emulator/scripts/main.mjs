@@ -1,10 +1,11 @@
 /**
  * Main script for the EmulatorJS game collection
  * Handles drag and drop functionality for ROMs
+ * Now with automatic ROM downloading capabilities
  */
 
 // Import only the ROM mapper which handles real ROMs
-import { initializeROMMapper, getActualROMPath, getAvailableRealROMs, getROMInfo } from './rom-mapper.mjs';
+import { initializeROMMapper, getActualROMPath, getAvailableRealROMs, getROMInfo, downloadROM } from './rom-mapper.mjs';
 
 // System definitions with their cores and file extensions
 const systems = {
@@ -143,6 +144,8 @@ const systems = {
 // Initialize variables
 let selectedSystem = "gba"; // Default system
 let recentGames = [];
+// Flag to track if we're auto-downloading ROMs
+let autoDownloadInProgress = false;
 
 try {
     recentGames = JSON.parse(localStorage.getItem('recentGames')) || [];
@@ -159,9 +162,9 @@ let systemButtons = null;
 let recentGamesList = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Document loaded, initializing emulator...");
+    console.log("Document loaded, initializing emulator for direct ROM loading...");
     
-    // Initialize ROM mapper (only real ROMs)
+    // Initialize ROM mapper
     initializeROMMapper();
     
     // Initialize DOM elements
@@ -201,8 +204,112 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create a section for real ROMs that exist
     createRealROMsSection();
     
+    // Load the EmulatorJS script
+    loadEmulatorJSScript();
+    
     console.log("Emulator initialization complete");
 });
+
+// Automatically download all ROMs in the background
+async function startAutoDownloadAllROMs() {
+    if (autoDownloadInProgress) return;
+    
+    autoDownloadInProgress = true;
+    console.log("Starting automatic background download of all ROMs");
+    
+    // Create a status indicator
+    const statusElement = document.createElement('div');
+    statusElement.id = 'auto-download-status';
+    statusElement.style.position = 'fixed';
+    statusElement.style.bottom = '20px';
+    statusElement.style.right = '20px';
+    statusElement.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    statusElement.style.color = '#00ff00';
+    statusElement.style.padding = '15px';
+    statusElement.style.borderRadius = '5px';
+    statusElement.style.zIndex = '9999';
+    statusElement.style.fontSize = '14px';
+    statusElement.style.boxShadow = '0 0 10px rgba(0, 136, 255, 0.5)';
+    statusElement.textContent = 'Auto-downloading ROMs in background...';
+    document.body.appendChild(statusElement);
+    
+    try {
+        // Get all available real ROMs
+        const availableROMs = getAvailableRealROMs();
+        let totalROMs = 0;
+        let downloadedROMs = 0;
+        
+        // Count total ROMs
+        Object.values(availableROMs).forEach(roms => {
+            totalROMs += roms.length;
+        });
+        
+        if (totalROMs === 0) {
+            statusElement.textContent = 'No ROMs to auto-download';
+            fadeAndRemoveElement(statusElement, 2000);
+            autoDownloadInProgress = false;
+            return;
+        }
+        
+        // Download each ROM
+        for (const system in availableROMs) {
+            for (const romId of availableROMs[system]) {
+                try {
+                    statusElement.textContent = `Auto-downloading (${downloadedROMs}/${totalROMs}): ${romId}`;
+                    
+                    // Download the ROM
+                    const result = await downloadROM(romId);
+                    downloadedROMs++;
+                    
+                    // Update status
+                    const percentComplete = Math.round((downloadedROMs / totalROMs) * 100);
+                    statusElement.textContent = `Auto-downloading: ${percentComplete}% complete`;
+                } catch (error) {
+                    console.error(`Error downloading ROM ${romId}:`, error);
+                }
+            }
+        }
+        
+        // All done
+        statusElement.textContent = 'All ROMs auto-downloaded successfully!';
+        statusElement.style.backgroundColor = 'rgba(0, 100, 0, 0.8)';
+        fadeAndRemoveElement(statusElement, 3000);
+    } catch (error) {
+        console.error("Error in auto-download process:", error);
+        statusElement.textContent = 'Error during auto-download';
+        statusElement.style.backgroundColor = 'rgba(100, 0, 0, 0.8)';
+        fadeAndRemoveElement(statusElement, 3000);
+    } finally {
+        autoDownloadInProgress = false;
+    }
+}
+
+// Helper function to fade out and remove an element
+function fadeAndRemoveElement(element, delay) {
+    setTimeout(() => {
+        element.style.transition = 'opacity 1s';
+        element.style.opacity = '0';
+        setTimeout(() => {
+            if (element.parentNode) {
+                element.parentNode.removeChild(element);
+            }
+        }, 1000);
+    }, delay);
+}
+
+// Load the EmulatorJS script from CDN
+function loadEmulatorJSScript() {
+    const script = document.createElement('script');
+    script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+    script.onload = () => {
+        console.log("EmulatorJS loader script loaded successfully");
+    };
+    script.onerror = (e) => {
+        console.error("Failed to load EmulatorJS:", e);
+        alert("Failed to load EmulatorJS. Please check your internet connection and try again.");
+    };
+    document.body.appendChild(script);
+}
 
 // Initialize search functionality
 function initializeSearch() {
@@ -637,21 +744,34 @@ function handleFile(file) {
         const fileUrl = URL.createObjectURL(file);
         console.log("Created blob URL:", fileUrl);
         
+        // Get info for recent games
+        const gameName = file.name.replace(fileExtension, '');
+        
         // Add to recent games
         addToRecentGames({
-            name: file.name.replace(fileExtension, ''),
+            name: gameName,
             system: selectedSystem,
             fileUrl,
             lastPlayed: new Date().toISOString()
         });
         
-        // Launch the emulator
-        console.log("Launching emulator with file:", file.name);
-        launchEmulator(fileUrl, file.name);
+        // Use EmulatorJS to launch the game
+        launchEmulatorJS(fileUrl, gameName);
     } catch (error) {
         console.error("Error handling file:", error);
         alert(`Error loading ROM: ${error.message}`);
     }
+}
+
+// Launch the emulator using EmulatorJS
+function launchEmulatorJS(fileUrl, gameName) {
+    console.log("Launching EmulatorJS with ROM:", gameName);
+    
+    // Create the EmulatorJS URL with parameters
+    const playUrl = `play.html?system=${selectedSystem}&blob=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(gameName)}`;
+    
+    // Redirect to the play page
+    window.location.href = playUrl;
 }
 
 // Setup system selection buttons
@@ -767,7 +887,7 @@ function updateRecentGamesList() {
         playBtn.textContent = 'Play';
         playBtn.addEventListener('click', () => {
             console.log("Playing recent game:", game.name);
-            launchEmulator(game.fileUrl, game.name);
+            launchEmulatorJS(game.fileUrl, game.name);
         });
         
         li.appendChild(systemTag);
@@ -776,16 +896,6 @@ function updateRecentGamesList() {
         
         recentGamesList.appendChild(li);
     });
-}
-
-// Launch the emulator
-function launchEmulator(fileUrl, fileName) {
-    // Create play URL with blob URL parameter
-    const playUrl = `play.html?system=${selectedSystem}&blob=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
-    console.log("Launching emulator with URL:", playUrl);
-    
-    // Open the emulator in the same window
-    window.location.href = playUrl;
 }
 
 // Create a complete system selector with all supported systems
@@ -917,7 +1027,7 @@ function checkForDirectLoad() {
         if (actualPath) {
             console.log(`Found real ROM path: ${actualPath}`);
             
-            // Load the ROM
+            // Check if the file exists
             fetch(actualPath)
                 .then(response => {
                     if (!response.ok) {
@@ -930,7 +1040,18 @@ function checkForDirectLoad() {
                     const fileName = actualPath.split('/').pop();
                     const file = new File([blob], fileName, { type: 'application/octet-stream' });
                     
-                    // Handle the file
+                    // Get ROM info if available
+                    const romInfo = getROMInfo(system, rom);
+                    
+                    // Add to recent games with proper info
+                    addToRecentGames({
+                        name: romInfo ? romInfo.title : fileName.replace(/\.\w+$/, ''),
+                        system: system,
+                        filePath: actualPath,
+                        lastPlayed: new Date().toISOString()
+                    });
+                    
+                    // Handle the file using EmulatorJS
                     handleFile(file);
                 })
                 .catch(error => {
@@ -966,8 +1087,11 @@ function createRealROMsSection() {
             romCount++;
             
             // Get ROM info
-            const info = getROMInfo(system, romId);
-            if (!info) return;
+            const info = getROMInfo(system, romId) || {
+                title: romId.replace(/-/g, ' '),
+                system: systems[system]?.name || system,
+                emoji: '🎮'
+            };
             
             // Create a card for this ROM
             const card = document.createElement('div');
@@ -980,12 +1104,24 @@ function createRealROMsSection() {
                 <div class="featured-game-info">
                     <div class="featured-game-title">${info.title}</div>
                     <div class="featured-game-system">${info.system || systems[system].name}</div>
-                    <button class="featured-game-play" onclick="window.location.href='?system=${system}&rom=${romId}'">Play Now</button>
+                    <button class="featured-game-play" data-system="${system}" data-rom="${romId}">Play Now</button>
                 </div>
             `;
             
             // Add to the grid
             featuredGamesGrid.appendChild(card);
+            
+            // Add click event to the play button
+            const playButton = card.querySelector('.featured-game-play');
+            if (playButton) {
+                playButton.addEventListener('click', () => {
+                    const system = playButton.dataset.system;
+                    const rom = playButton.dataset.rom;
+                    if (system && rom) {
+                        window.location.href = `?system=${system}&rom=${rom}`;
+                    }
+                });
+            }
         });
     });
     
