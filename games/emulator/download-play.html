@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloading Game...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #0088ff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+        }
+        
+        #emulator {
+            width: 100%;
+            height: 500px;
+            background-color: black;
+            margin: 20px 0;
+        }
+        
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #0088ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        
+        .download-status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #333;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #222;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #0088ff;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .game-info {
+            background-color: #252525;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .game-title {
+            font-size: 24px;
+            color: #0088ff;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .game-icon {
+            font-size: 30px;
+            margin-right: 10px;
+        }
+        
+        .game-description {
+            margin: 10px 0;
+            color: #aaa;
+        }
+        
+        .download-button {
+            background-color: #00aa44;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Download & Play</h1>
+        
+        <div class="game-info">
+            <div class="game-title">
+                <span class="game-icon" id="game-icon">🎮</span>
+                <span id="game-title">Loading Game Info...</span>
+            </div>
+            <div class="game-description" id="game-description">
+                Please wait while we fetch the game information...
+            </div>
+        </div>
+        
+        <div class="download-status" id="download-status">
+            Ready to download
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        
+        <button id="download-button" class="download-button">Download & Play Now</button>
+        
+        <div id="emulator"></div>
+        
+        <a href="index.html" class="back">Back to Games</a>
+    </div>
+    
+    <script type="text/javascript">
+        // ROM download URLs - Using publicly available ROMs for educational purposes
+        const GAMES = {
+            'pokemon': {
+                title: 'Pokémon Fire Red',
+                icon: '🔥',
+                description: 'Pokémon Fire Red Version for Game Boy Advance. Catch, train and battle with your Pokémon in the Kanto region.',
+                downloadUrl: 'https://archive.org/download/3950-pokemon-fire-red-version/3950-pokemon-fire-red-version.gba',
+                system: 'gba'
+            },
+            'dragonball': {
+                title: 'Dragon Ball Z: Supersonic Warriors',
+                icon: '👊',
+                description: 'Dragon Ball Z: Supersonic Warriors for Game Boy Advance. Play as your favorite Dragon Ball Z fighters in high-speed battles.',
+                downloadUrl: 'https://archive.org/download/3133-dragon-ball-z-supersonic-warriors/3133-dragon-ball-z-supersonic-warriors.gba',
+                system: 'gba'
+            }
+        };
+        
+        // DOM elements
+        const downloadStatus = document.getElementById('download-status');
+        const progressFill = document.getElementById('progress-fill');
+        const gameTitle = document.getElementById('game-title');
+        const gameIcon = document.getElementById('game-icon');
+        const gameDescription = document.getElementById('game-description');
+        const downloadButton = document.getElementById('download-button');
+        
+        // Get game from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('game') || 'pokemon';
+        
+        // Get game info
+        const game = GAMES[gameId] || GAMES['pokemon'];
+        
+        // Update page with game info
+        document.title = `Download ${game.title}`;
+        gameTitle.textContent = game.title;
+        gameIcon.textContent = game.icon;
+        gameDescription.textContent = game.description;
+        
+        // Set up download button
+        downloadButton.addEventListener('click', startDownload);
+        
+        // Auto-start download when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start download after a short delay to let the user see the page
+            setTimeout(startDownload, 1000);
+        });
+        
+        // Download and start the game
+        async function startDownload() {
+            try {
+                // Disable button during download
+                downloadButton.disabled = true;
+                downloadButton.textContent = 'Downloading...';
+                downloadStatus.textContent = 'Starting download...';
+                progressFill.style.width = '5%';
+                
+                // Fetch the ROM file
+                const response = await fetch(game.downloadUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to download ROM: ${response.status} ${response.statusText}`);
+                }
+                
+                // Get total size for progress tracking
+                const totalSize = parseInt(response.headers.get('content-length') || '0');
+                const reader = response.body.getReader();
+                const chunks = [];
+                let received = 0;
+                
+                // Process the download stream
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+                    
+                    chunks.push(value);
+                    received += value.length;
+                    
+                    // Update progress
+                    if (totalSize > 0) {
+                        const percentComplete = Math.round((received / totalSize) * 100);
+                        progressFill.style.width = `${percentComplete}%`;
+                        downloadStatus.textContent = `Downloading... ${percentComplete}%`;
+                    }
+                }
+                
+                // Concatenate chunks
+                const uint8Array = new Uint8Array(received);
+                let position = 0;
+                for (const chunk of chunks) {
+                    uint8Array.set(chunk, position);
+                    position += chunk.length;
+                }
+                
+                // Create blob and start the emulator
+                const blob = new Blob([uint8Array], { type: 'application/octet-stream' });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                downloadStatus.textContent = 'Download complete! Starting game...';
+                progressFill.style.width = '100%';
+                
+                // Start emulator
+                startEmulator(blobUrl);
+                
+                // Hide download button
+                downloadButton.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                downloadStatus.textContent = `Error: ${error.message}. Please try again.`;
+                downloadStatus.style.backgroundColor = '#aa2222';
+                
+                // Re-enable button
+                downloadButton.disabled = false;
+                downloadButton.textContent = 'Retry Download';
+            }
+        }
+        
+        // Start the EmulatorJS with the provided ROM
+        function startEmulator(romUrl) {
+            // Set up EmulatorJS
+            window.EJS_player = '#emulator';
+            window.EJS_gameName = game.title;
+            window.EJS_biosUrl = '';
+            window.EJS_gameUrl = romUrl;
+            window.EJS_core = game.system;
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_startOnLoaded = true;
+            
+            // Add callbacks
+            window.EJS_onGameStart = function() {
+                console.log(`${game.title} started successfully`);
+                downloadStatus.style.display = 'none';
+            };
+            
+            // Load EmulatorJS
+            const script = document.createElement('script');
+            script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+            document.body.appendChild(script);
+        }
+    </script>
+</body>
+</html> 

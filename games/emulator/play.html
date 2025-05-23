@@ -157,30 +157,59 @@
             text-align: center;
             font-weight: bold;
         }
+        
+        .loading-status {
+            background-color: #333;
+            color: #0088ff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #222;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #0088ff;
+            width: 0%;
+            transition: width 0.3s;
+        }
     </style>
 </head>
 <body>
     <div class="game-header">
         <a href="index.html" class="back-button">← Back to Games</a>
-        <h1 id="game-title">Loading Game...</h1>
+        <h1 id="game-title">Playing GBA Game</h1>
         <div class="controls-info">
-            <span id="controls-text">Loading...</span>
+            <span id="controls-text">D-Pad: Arrows, A: X, B: Z</span>
         </div>
     </div>
     
     <div class="emulator-container">
-        <div id="game">
-            <div class="loading">
-                <div class="spinner"></div>
-                <div class="loading-text">Loading Emulator...</div>
-                <div class="real-rom-notice">Using real ROM file - no placeholders</div>
+        <div class="loading-status" id="loading-status">
+            Initializing emulator...
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
             </div>
+        </div>
+        
+        <div id="game">
+            <!-- EmulatorJS will render here -->
         </div>
     </div>
     
     <div id="debug-panel" class="debug-panel"></div>
     
-    <!-- EmulatorJS Scripts -->
+    <!-- Debug functions -->
     <script type="text/javascript">
         // Enable debug mode (press D key to show/hide debug panel)
         const DEBUG = true;
@@ -208,407 +237,269 @@
             }
         });
         
-        // EmulatorJS configuration variables
-        var EJS_player = '#game';
-        var EJS_core = '';
-        var EJS_gameName = '';
-        var EJS_color = '#0088ff';
-        var EJS_startOnLoaded = true;
-        var EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-        var EJS_gameUrl = '';
-        var EJS_netplayUrl = 'https://netplay.emulatorjs.org';
-        var EJS_defaultOptions = {
-            'save-state-slot': 1,
-            'save-state-location': 'browser',
-            'cheats': true,
-            'shader': 'crt',
-            'volume': 0.7
-        };
-        
-        debug("EmulatorJS variables initialized");
+        debug("Initializing EmulatorJS play page");
     </script>
     
-    <!-- Script for handling URL parameters and game loading -->
-    <script>
-        // Systems configuration
-        const validSystems = {
-            // Nintendo
-            "gba": {
-                name: "Game Boy Advance",
-                core: "gba",
-                icon: "GBA"
+    <!-- Game loader script -->
+    <script type="text/javascript">
+        // ROM mappings with backup download URLs
+        const ROM_MAPPINGS = {
+            'pokemon': {
+                title: 'Pokémon Fire Red',
+                path: 'roms/gba/Pokemon - Fire Red Version (U) (V1.1).gba',
+                backupUrl: 'https://archive.org/download/3950-pokemon-fire-red-version/3950-pokemon-fire-red-version.gba',
+                core: 'gba',
+                controls: 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift'
             },
-            "gb": {
-                name: "Game Boy / Game Boy Color",
-                core: "gb",
-                icon: "GB"
-            },
-            "nes": {
-                name: "Nintendo Entertainment System",
-                core: "nes",
-                icon: "NES"
-            },
-            "snes": {
-                name: "Super Nintendo",
-                core: "snes",
-                icon: "SNES"
-            },
-            "n64": {
-                name: "Nintendo 64",
-                core: "n64",
-                icon: "N64"
-            },
-            "nds": {
-                name: "Nintendo DS",
-                core: "nds",
-                icon: "NDS"
-            },
-            "vb": {
-                name: "Virtual Boy",
-                core: "vb",
-                icon: "VB"
-            },
-            // Sega
-            "segaMS": {
-                name: "Sega Master System",
-                core: "segaMS",
-                icon: "SMS"
-            },
-            "segaMD": {
-                name: "Sega Mega Drive / Genesis",
-                core: "segaMD",
-                icon: "MD"
-            },
-            "segaGG": {
-                name: "Sega Game Gear",
-                core: "segaGG",
-                icon: "GG"
-            },
-            "segaCD": {
-                name: "Sega CD / Mega CD",
-                core: "segaCD",
-                icon: "SCD"
-            },
-            "sega32x": {
-                name: "Sega 32X",
-                core: "sega32x",
-                icon: "32X"
-            },
-            "segaSaturn": {
-                name: "Sega Saturn",
-                core: "segaSaturn",
-                icon: "SAT"
-            },
-            // Atari
-            "atari2600": {
-                name: "Atari 2600",
-                core: "atari2600",
-                icon: "2600"
-            },
-            "atari7800": {
-                name: "Atari 7800",
-                core: "atari7800",
-                icon: "7800"
-            },
-            "lynx": {
-                name: "Atari Lynx",
-                core: "lynx",
-                icon: "LYNX"
-            },
-            "jaguar": {
-                name: "Atari Jaguar",
-                core: "jaguar",
-                icon: "JAG"
-            },
-            // Sony
-            "psx": {
-                name: "PlayStation",
-                core: "psx",
-                icon: "PSX"
-            },
-            "psp": {
-                name: "PlayStation Portable",
-                core: "psp",
-                icon: "PSP"
-            },
-            // Other
-            "arcade": {
-                name: "Arcade",
-                core: "arcade",
-                icon: "ARC"
-            },
-            "3do": {
-                name: "3DO",
-                core: "3do",
-                icon: "3DO"
-            },
-            "mame2003": {
-                name: "MAME 2003",
-                core: "mame2003",
-                icon: "MAME"
-            },
-            "coleco": {
-                name: "ColecoVision",
-                core: "coleco",
-                icon: "COL"
-            },
-            "ws": {
-                name: "WonderSwan / Color",
-                core: "ws",
-                icon: "WS"
-            },
-            "ngp": {
-                name: "Neo Geo Pocket / Color",
-                core: "ngp",
-                icon: "NGP"
-            },
-            "pcengine": {
-                name: "PC Engine / TurboGrafx-16",
-                core: "pcengine",
-                icon: "PCE"
+            'dragonball': {
+                title: 'Dragon Ball Z - Supersonic Warriors',
+                path: 'roms/gba/Dragonball Z - Supersonic Warriors # GBA.GBA',
+                backupUrl: 'https://archive.org/download/no-intro-collection-gba/Dragon%20Ball%20Z%20-%20Supersonic%20Warriors%20%28USA%29.zip/Dragon%20Ball%20Z%20-%20Supersonic%20Warriors%20%28USA%29.gba',
+                core: 'gba',
+                controls: 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift'
             }
         };
         
-        // Controls mapping for different systems
-        const controlsMap = {
-            // Nintendo
-            'gba': 'D-Pad: Arrow Keys | A: X | B: Z | L: A | R: S | Start: Enter | Select: Shift',
-            'gb': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
-            'nes': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter | Select: Shift',
-            'snes': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift',
-            'n64': 'Movement: Arrow Keys | A: X | B: Z | L: A | R: S | Z: D | Start: Enter',
-            'nds': 'D-Pad: Arrow Keys | A: X | B: Z | X: S | Y: A | L: Q | R: W | Start: Enter | Select: Shift',
-            'vb': 'D-Pad: Arrow Keys | A: X | B: Z | L: Q | R: W | Start: Enter | Select: Shift',
-            
-            // Sega
-            'segaMS': 'D-Pad: Arrow Keys | 1: Z | 2: X | Start: Enter',
-            'segaMD': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
-            'segaGG': 'D-Pad: Arrow Keys | 1: Z | 2: X | Start: Enter',
-            'segaCD': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
-            'sega32x': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
-            'segaSaturn': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | X: A | Y: S | Z: D | Start: Enter',
-            
-            // Atari
-            'atari2600': 'D-Pad: Arrow Keys | Fire: X | Select: Shift | Reset: Enter',
-            'atari7800': 'D-Pad: Arrow Keys | Fire 1: X | Fire 2: Z | Select: Shift | Reset: Enter',
-            'lynx': 'D-Pad: Arrow Keys | A: X | B: Z | Opt 1: A | Opt 2: S | Start: Enter | Pause: P',
-            'jaguar': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | Pause: Enter',
-            
-            // Sony
-            'psx': 'D-Pad: Arrow Keys | X: Z | O: X | Square: A | Triangle: S | L1: Q | R1: W | Start: Enter | Select: Shift',
-            'psp': 'D-Pad: Arrow Keys | X: Z | O: X | Square: A | Triangle: S | L: Q | R: W | Start: Enter | Select: Shift',
-            
-            // Other
-            'arcade': 'Movement: Arrow Keys | Action 1: Z | Action 2: X | Action 3: C | Action 4: V | Coin: 5 | Start: 1',
-            '3do': 'D-Pad: Arrow Keys | A: Z | B: X | C: C | P: Enter | X: A | L: Q | R: W',
-            'mame2003': 'Movement: Arrow Keys | Action 1: Z | Action 2: X | Action 3: C | Action 4: V | Coin: 5 | Start: 1',
-            'coleco': 'D-Pad: Arrow Keys | Fire 1: Z | Fire 2: X | 1: 1 | 2: 2 | Star: 8 | Hash: 9',
-            'ws': 'D-Pad: Arrow Keys | A: X | B: Z | Start: Enter',
-            'ngp': 'D-Pad: Arrow Keys | A: X | B: Z | Option: Enter',
-            'pcengine': 'D-Pad: Arrow Keys | I: Z | II: X | Run: Enter | Select: Shift'
-        };
-        
-        // Default controls for systems not specifically defined
-        const defaultControls = 'D-Pad: Arrow Keys | A/Button 1: X | B/Button 2: Z | Start: Enter';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            debug("Document loaded, initializing emulator...");
-            
+        document.addEventListener('DOMContentLoaded', async () => {
             try {
                 // Get URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
-                const system = urlParams.get('system');
-                const blobUrl = urlParams.get('blob');
-                const gameName = urlParams.get('name');
+                const romId = urlParams.get('rom') || 'pokemon'; // Default to Pokemon if no ROM specified
+                const blobUrl = urlParams.get('blob'); // For direct blob URLs (from drag-and-drop)
                 
-                debug(`URL Parameters - System: ${system}, Game: ${gameName}`);
-                debug(`Blob URL: ${blobUrl ? 'Present' : 'Missing'}`);
+                // Get ROM info - default to pokemon if not found
+                const romInfo = ROM_MAPPINGS[romId] || ROM_MAPPINGS['pokemon'];
                 
-                // Validate parameters
-                if (!system || !blobUrl) {
-                    showError("Missing system or game file");
+                // Update page title and UI
+                document.title = `Auto-Loading: ${romInfo.title}`;
+                document.getElementById('game-title').textContent = `Auto-Loading: ${romInfo.title}`;
+                document.getElementById('controls-text').textContent = romInfo.controls || 'D-Pad: Arrow Keys | A: X | B: Z';
+                
+                // Elements for status updates
+                const loadingStatus = document.getElementById('loading-status');
+                const progressFill = document.getElementById('progress-fill');
+                
+                // Add auto-download notice
+                const autoNotice = document.createElement('div');
+                autoNotice.textContent = 'ROMs will download automatically - no action needed!';
+                autoNotice.style.color = '#00ff00';
+                autoNotice.style.marginTop = '10px';
+                autoNotice.style.animation = 'pulse 2s infinite';
+                loadingStatus.appendChild(autoNotice);
+                
+                // Add animation style
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { opacity: 0.7; }
+                        50% { opacity: 1; }
+                        100% { opacity: 0.7; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // If a blob URL was provided (from drag and drop), use it directly
+                if (blobUrl) {
+                    loadingStatus.textContent = "Loading game from provided file...";
+                    progressFill.style.width = "100%";
+                    
+                    setTimeout(() => {
+                        loadingStatus.style.display = 'none';
+                        initializeEmulator(blobUrl);
+                    }, 1000);
                     return;
                 }
                 
-                if (!validSystems[system]) {
-                    showError(`Invalid system: ${system}`);
-                    return;
+                // Otherwise, automatically ensure the ROM is available (locally or by downloading)
+                loadingStatus.textContent = `Auto-downloading: ${romInfo.title}...`;
+                progressFill.style.width = "10%";
+                
+                let romUrl = await ensureRomIsAvailable(romInfo, loadingStatus, progressFill);
+                if (romUrl) {
+                    loadingStatus.textContent = "Download complete! Starting game...";
+                    progressFill.style.width = "100%";
+                    
+                    setTimeout(() => {
+                        loadingStatus.style.display = 'none';
+                        initializeEmulator(romUrl);
+                    }, 1000);
                 }
                 
-                // Update page with game info
-                const gameTitle = gameName || "Game";
-                document.title = `Playing ${gameTitle}`;
+            } catch (error) {
+                console.error("Error initializing game:", error);
+                const loadingStatus = document.getElementById('loading-status');
+                loadingStatus.textContent = `Error: ${error.message}`;
+                loadingStatus.style.backgroundColor = "#aa2222";
+                loadingStatus.style.color = "white";
+            }
+        });
+        
+        // Ensure ROM is available by checking local, cache, or downloading
+        async function ensureRomIsAvailable(romInfo, statusElement, progressElement) {
+            try {
+                statusElement.textContent = "Checking if ROM is available locally...";
                 
-                // Add system icon if available
-                const titleElement = document.getElementById('game-title');
-                if (titleElement) {
-                    if (validSystems[system].icon) {
-                        titleElement.innerHTML = `<span class="system-icon">${validSystems[system].icon}</span> ${gameTitle}`;
-                    } else {
-                        titleElement.textContent = gameTitle;
+                // Try to load from local path first
+                try {
+                    const response = await fetch(romInfo.path);
+                    if (response.ok) {
+                        statusElement.textContent = "ROM file found locally!";
+                        progressElement.style.width = "100%";
+                        return romInfo.path;
+                    }
+                } catch (error) {
+                    console.log("ROM not found locally, will check cache:", error);
+                }
+                
+                // Check if ROM is in IndexedDB cache
+                statusElement.textContent = "Checking ROM cache...";
+                
+                const dbName = 'EmulatorROMs';
+                const storeName = 'roms';
+                
+                // Open or create the database
+                const db = await new Promise((resolve, reject) => {
+                    const request = indexedDB.open(dbName, 1);
+                    
+                    request.onerror = event => reject("Error opening database: " + event.target.errorCode);
+                    
+                    request.onupgradeneeded = event => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(storeName)) {
+                            db.createObjectStore(storeName, { keyPath: 'id' });
+                        }
+                    };
+                    
+                    request.onsuccess = event => resolve(event.target.result);
+                });
+                
+                // Check if ROM exists in cache
+                const tx = db.transaction(storeName, 'readonly');
+                const store = tx.objectStore(storeName);
+                const romInCache = await new Promise(resolve => {
+                    const request = store.get(romInfo.title);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => resolve(null);
+                });
+                
+                if (romInCache && romInCache.data) {
+                    statusElement.textContent = "Loading ROM from cache...";
+                    progressElement.style.width = "100%";
+                    
+                    // Create a Blob from the cached data
+                    const blob = new Blob([romInCache.data], { type: 'application/octet-stream' });
+                    return URL.createObjectURL(blob);
+                }
+                
+                // If ROM isn't local or in cache, need to download it
+                if (!romInfo.backupUrl) {
+                    throw new Error("No backup URL available for this ROM. Please add the ROM file manually.");
+                }
+                
+                statusElement.textContent = "Downloading ROM...";
+                
+                // Download the ROM
+                const response = await fetch(romInfo.backupUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to download ROM: ${response.status} ${response.statusText}`);
+                }
+                
+                // Get total size for progress tracking
+                const totalSize = parseInt(response.headers.get('content-length') || '0');
+                
+                // Stream the download with progress tracking
+                const reader = response.body.getReader();
+                const chunks = [];
+                let receivedLength = 0;
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+                    
+                    chunks.push(value);
+                    receivedLength += value.length;
+                    
+                    // Update progress
+                    if (totalSize > 0) {
+                        const percentComplete = Math.round((receivedLength / totalSize) * 100);
+                        progressElement.style.width = `${percentComplete}%`;
+                        statusElement.textContent = `Downloading ROM... ${percentComplete}%`;
                     }
                 }
                 
-                // Update controls info
-                const controlsInfo = document.getElementById('controls-text');
-                if (controlsInfo) {
-                    controlsInfo.textContent = controlsMap[system] || defaultControls;
+                statusElement.textContent = "Download complete! Processing...";
+                
+                // Concatenate chunks into a single Uint8Array
+                const arrayBuffer = new Uint8Array(receivedLength);
+                let position = 0;
+                for (const chunk of chunks) {
+                    arrayBuffer.set(chunk, position);
+                    position += chunk.length;
                 }
                 
-                // Update EmulatorJS variables
-                window.EJS_core = validSystems[system].core;
-                window.EJS_gameName = gameTitle;
+                // Save to IndexedDB for future use
+                const txWrite = db.transaction(storeName, 'readwrite');
+                const storeWrite = txWrite.objectStore(storeName);
+                storeWrite.put({
+                    id: romInfo.title,
+                    data: arrayBuffer,
+                    timestamp: new Date().getTime()
+                });
                 
-                // Decode and set the blob URL
-                try {
-                    window.EJS_gameUrl = decodeURIComponent(blobUrl);
-                    debug(`Game URL set to: ${window.EJS_gameUrl.substring(0, 50)}...`);
-                } catch (e) {
-                    debug(`Error decoding blob URL: ${e.message}`);
-                    showError(`Error decoding ROM URL: ${e.message}`);
-                    return;
-                }
-                
-                // Check if system requires BIOS files
-                if (system === 'psx' || system === 'psp' || system === 'segaCD' || 
-                    system === 'segaSaturn' || system === '3do') {
-                    debug(`System ${system} may require BIOS files`);
-                    
-                    // Show a message about BIOS requirements
-                    const biosMessage = document.createElement('div');
-                    biosMessage.className = 'real-rom-notice';
-                    biosMessage.textContent = `Note: ${validSystems[system].name} emulation may require BIOS files`;
-                    document.querySelector('.loading').appendChild(biosMessage);
-                }
-                
-                // Check if Konami code was activated
-                const konamiActivated = localStorage.getItem('konamiActivated') === 'true';
-                if (konamiActivated) {
-                    debug("Cheat mode is active");
-                    // Add cheat mode options
-                    window.EJS_defaultOptions.cheats = true;
-                    window.EJS_defaultOptions.fastForward = true;
-                    
-                    // Add visual indicator
-                    const cheatIndicator = document.createElement('div');
-                    cheatIndicator.style.position = 'absolute';
-                    cheatIndicator.style.top = '15px';
-                    cheatIndicator.style.right = '15px';
-                    cheatIndicator.style.background = '#ffcc00';
-                    cheatIndicator.style.color = '#000';
-                    cheatIndicator.style.padding = '5px 10px';
-                    cheatIndicator.style.borderRadius = '3px';
-                    cheatIndicator.style.fontSize = '12px';
-                    cheatIndicator.style.fontWeight = 'bold';
-                    cheatIndicator.textContent = '⭐ CHEAT MODE';
-                    document.querySelector('.game-header').appendChild(cheatIndicator);
-                }
-                
-                // Set up error handling for EmulatorJS
-                window.EJS_onGameStart = function() {
-                    debug("Game started successfully");
-                };
-                
-                window.EJS_onError = function(errorCode, errorText) {
-                    debug(`EmulatorJS Error: ${errorCode} - ${errorText}`);
-                    showError(`EmulatorJS Error: ${errorText}`);
-                };
-                
-                // Load the EmulatorJS script
-                debug("Loading EmulatorJS loader script...");
-                loadEmulatorScript();
+                // Create a blob URL
+                const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+                return URL.createObjectURL(blob);
                 
             } catch (error) {
-                debug(`Error initializing emulator: ${error.message}`);
-                console.error('Error initializing emulator:', error);
-                showError(`Error initializing emulator: ${error.message}`);
+                console.error("Error ensuring ROM availability:", error);
+                throw error;
             }
-        });
+        }
         
-        // Load the EmulatorJS script
-        function loadEmulatorScript() {
+        // Initialize the EmulatorJS player
+        function initializeEmulator(gameUrl) {
+            // EmulatorJS configuration
+            window.EJS_player = '#game';
+            window.EJS_gameName = document.getElementById('game-title').textContent.replace('Auto-Loading: ', '');
+            window.EJS_biosUrl = '';
+            window.EJS_gameUrl = gameUrl;
+            
+            // Get core from URL param or default to gba
+            const urlParams = new URLSearchParams(window.location.search);
+            const romId = urlParams.get('rom') || 'pokemon';
+            const romInfo = ROM_MAPPINGS[romId] || ROM_MAPPINGS['pokemon'];
+            
+            window.EJS_core = romInfo.core || 'gba';
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_startOnLoaded = true;
+            window.EJS_defaultOptions = {
+                'save-state-slot': 1,
+                'save-state-location': 'browser',
+                'cheats': true,
+                'shader': 'crt',
+                'volume': 0.7
+            };
+            
+            // Add event handlers
+            window.EJS_onGameStart = function() {
+                console.log(`Game started successfully`);
+            };
+            
+            window.EJS_onError = function(errorCode, errorText) {
+                console.error(`EmulatorJS Error: ${errorCode} - ${errorText}`);
+                const loadingStatus = document.getElementById('loading-status');
+                loadingStatus.style.display = 'block';
+                loadingStatus.textContent = `EmulatorJS Error: ${errorText}`;
+                loadingStatus.style.backgroundColor = "#aa2222";
+                loadingStatus.style.color = "white";
+            };
+            
+            // Load EmulatorJS
             const script = document.createElement('script');
             script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-            script.onload = () => {
-                debug("EmulatorJS loader script loaded successfully");
-            };
-            script.onerror = (e) => {
-                debug(`Failed to load EmulatorJS: ${e}`);
-                showError("Failed to load EmulatorJS. Please check your internet connection and try again.");
-            };
             document.body.appendChild(script);
         }
-        
-        // Show error message
-        function showError(message) {
-            debug(`Showing error: ${message}`);
-            document.getElementById('game-title').textContent = "Error";
-            document.getElementById('controls-text').textContent = "";
-            
-            const gameElement = document.getElementById('game');
-            if (gameElement) {
-                gameElement.innerHTML = `
-                    <div class="error-container">
-                        <h2>Error</h2>
-                        <p>${message}</p>
-                        <p>Please <a href="index.html" style="color: #0088ff;">return to the game list</a> and try again.</p>
-                        <div style="margin-top: 20px; font-size: 12px; color: #888;">
-                            <p>Troubleshooting tips:</p>
-                            <ul style="text-align: left;">
-                                <li>Make sure your ROM file is valid and not corrupted</li>
-                                <li>Try refreshing the page</li>
-                                <li>Try a different browser</li>
-                                <li>Press D to show debug information</li>
-                            </ul>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-        
-        // Handle Konami Code for cheats
-        let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-        let konamiPosition = 0;
-        
-        document.addEventListener('keydown', function(e) {
-            if (e.key === konamiCode[konamiPosition]) {
-                konamiPosition++;
-                
-                if (konamiPosition === konamiCode.length) {
-                    // Konami code completed!
-                    debug("Konami code activated!");
-                    localStorage.setItem('konamiActivated', 'true');
-                    
-                    // Show a fun message
-                    const message = document.createElement('div');
-                    message.style.position = 'fixed';
-                    message.style.top = '0';
-                    message.style.left = '0';
-                    message.style.width = '100%';
-                    message.style.padding = '10px';
-                    message.style.backgroundColor = '#ffcc00';
-                    message.style.color = '#000';
-                    message.style.textAlign = 'center';
-                    message.style.zIndex = '9999';
-                    message.style.fontWeight = 'bold';
-                    message.textContent = '⭐ CHEAT MODE ACTIVATED! ⭐';
-                    document.body.appendChild(message);
-                    
-                    setTimeout(() => {
-                        message.style.transition = 'opacity 1s';
-                        message.style.opacity = '0';
-                        setTimeout(() => message.remove(), 1000);
-                    }, 3000);
-                    
-                    konamiPosition = 0;
-                    
-                    // Reload to apply cheat mode
-                    location.reload();
-                }
-            } else {
-                konamiPosition = 0;
-            }
-        });
     </script>
 </body>
 </html> 

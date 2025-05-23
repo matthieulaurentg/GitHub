@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmulatorJS Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #0088ff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+        }
+        
+        #emulator {
+            width: 100%;
+            height: 500px;
+            background-color: black;
+            margin: 20px 0;
+        }
+        
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #0088ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        
+        .loading-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #333;
+        }
+        
+        .upload-section {
+            background-color: #252525;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .upload-title {
+            font-weight: bold;
+            color: #0088ff;
+            margin-bottom: 10px;
+        }
+        
+        .upload-button {
+            background-color: #0088ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EmulatorJS Test</h1>
+        <p id="game-title">Loading game...</p>
+        
+        <div id="loading-status" class="loading-status">
+            Checking ROM file...
+        </div>
+        
+        <div id="upload-section" class="upload-section">
+            <div class="upload-title">ROM File Not Found</div>
+            <p>The ROM file couldn't be loaded from the server. Please upload it directly:</p>
+            <input type="file" id="rom-upload" class="file-input" accept=".gba,.nes,.sfc,.smc,.gb,.gbc">
+            <button id="upload-button" class="upload-button">Select ROM File</button>
+        </div>
+        
+        <div id="emulator"></div>
+        
+        <a href="index.html" class="back">Back to Emulator</a>
+    </div>
+    
+    <script type="text/javascript">
+        // ROM mappings with direct paths
+        const ROM_MAPPINGS = {
+            'pokemon': {
+                title: 'Pokémon Fire Red',
+                path: 'roms/gba/Pokemon - Fire Red Version (U) (V1.1).gba',
+                core: 'gba'
+            },
+            'dragonball': {
+                title: 'Dragon Ball Z - Supersonic Warriors',
+                path: 'roms/gba/Dragonball Z - Supersonic Warriors # GBA.GBA',
+                core: 'gba'
+            }
+        };
+        
+        // Get ROM from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const romId = urlParams.get('rom') || 'pokemon';
+        
+        // Get ROM info
+        const rom = ROM_MAPPINGS[romId] || ROM_MAPPINGS['pokemon'];
+        
+        // Update page title
+        document.title = `Playing ${rom.title}`;
+        document.getElementById('game-title').textContent = `Playing ${rom.title}`;
+        
+        // DOM elements
+        const loadingStatus = document.getElementById('loading-status');
+        const uploadSection = document.getElementById('upload-section');
+        const uploadButton = document.getElementById('upload-button');
+        const romUpload = document.getElementById('rom-upload');
+        
+        // Set up file upload
+        uploadButton.addEventListener('click', () => {
+            romUpload.click();
+        });
+        
+        romUpload.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                const file = e.target.files[0];
+                loadFromFile(file);
+            }
+        });
+        
+        // Load the ROM directly
+        function loadROM() {
+            loadingStatus.textContent = "Checking if ROM file exists...";
+            
+            // Check if the file exists
+            fetch(rom.path)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`ROM file not found: ${rom.path}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    loadingStatus.textContent = "ROM file found! Starting emulator...";
+                    
+                    // Create a blob URL for the ROM
+                    const blobUrl = URL.createObjectURL(blob);
+                    
+                    // Initialize the emulator with the blob URL
+                    initEmulator(blobUrl);
+                })
+                .catch(error => {
+                    console.error("Error loading ROM:", error);
+                    loadingStatus.textContent = `Error: ${error.message}. Please upload the ROM file directly.`;
+                    loadingStatus.style.backgroundColor = "#aa2222";
+                    
+                    // Show upload section
+                    uploadSection.style.display = 'block';
+                });
+        }
+        
+        // Load ROM from uploaded file
+        function loadFromFile(file) {
+            try {
+                // Create a blob URL for the uploaded file
+                const blobUrl = URL.createObjectURL(file);
+                
+                loadingStatus.textContent = `ROM file uploaded! Starting emulator...`;
+                loadingStatus.style.backgroundColor = "#333";
+                
+                // Hide upload section
+                uploadSection.style.display = 'none';
+                
+                // Initialize the emulator with the blob URL
+                initEmulator(blobUrl);
+            } catch (error) {
+                console.error("Error with uploaded file:", error);
+                loadingStatus.textContent = `Error with uploaded file: ${error.message}`;
+                loadingStatus.style.backgroundColor = "#aa2222";
+            }
+        }
+        
+        // Initialize EmulatorJS with the ROM
+        function initEmulator(romUrl) {
+            // Hide loading status after initialization
+            setTimeout(() => {
+                loadingStatus.style.display = 'none';
+            }, 2000);
+            
+            // EmulatorJS configuration
+            window.EJS_player = '#emulator';
+            window.EJS_gameName = rom.title;
+            window.EJS_biosUrl = '';
+            window.EJS_gameUrl = romUrl;
+            window.EJS_core = rom.core;
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_startOnLoaded = true;
+            window.EJS_onGameStart = function() {
+                console.log(`${rom.title} started successfully`);
+                loadingStatus.style.display = 'none';
+            };
+            
+            // Load EmulatorJS
+            const script = document.createElement('script');
+            script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+            document.body.appendChild(script);
+        }
+        
+        // Start loading the ROM when the page loads
+        document.addEventListener('DOMContentLoaded', loadROM);
+    </script>
+</body>
+</html> 

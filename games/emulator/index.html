@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Retro Game Emulator</title>
     <link rel="stylesheet" href="styles/main.css">
+    <!-- EmulatorJS setup - note these variables are only for the index page, not for actual gameplay -->
+    <script type="text/javascript">
+        // Basic variables needed to prevent errors
+        var EJS_player = '#game';  // Not actually used on this page
+        var EJS_biosUrl = '';      // No BIOS needed for this page
+        var EJS_gameUrl = '';      // No game loaded on this page
+        var EJS_core = '';         // No core loaded on this page
+        var EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    </script>
     <style>
         .drag-drop-area {
             border: 3px dashed #444;
@@ -296,6 +305,49 @@
             text-align: center;
             font-weight: bold;
         }
+        
+        .emulatorjs-info {
+            background-color: #333;
+            color: #aaffaa;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .direct-links {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #0044aa;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .direct-links h3 {
+            color: white;
+            margin-top: 0;
+        }
+        
+        .direct-links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .direct-link {
+            background-color: #0088ff;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .direct-link:hover {
+            background-color: #006acd;
+        }
     </style>
 </head>
 <body>
@@ -311,6 +363,27 @@
         <div class="emulator-container">
             <div class="game-list">
                 <h2>Multi-System Retro Emulator</h2>
+                
+                <div class="direct-links">
+                    <h3>Download & Play Games Now</h3>
+                    <div style="background-color: #00aa44; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                        <p style="color: #ffffff; font-weight: bold;">🎮 ONE-CLICK DOWNLOAD & PLAY 🎮</p>
+                        <p style="color: #aaffaa;">Just click a button below to download and play!</p>
+                    </div>
+                    <div class="direct-links-grid">
+                        <a href="download-play.html?game=pokemon" class="direct-link" style="background-color: #ff5555;">
+                            <span style="font-size: 20px;">🔥</span> Download & Play<br>Pokémon Fire Red
+                        </a>
+                        <a href="download-play.html?game=dragonball" class="direct-link" style="background-color: #ff9933;">
+                            <span style="font-size: 20px;">👊</span> Download & Play<br>Dragon Ball Z
+                        </a>
+                    </div>
+                    <p style="margin-top: 15px; color: #88ff88; font-weight: bold;">One click to download and start playing!</p>
+                </div>
+                
+                <div class="emulatorjs-info">
+                    Using <a href="https://github.com/EmulatorJS/EmulatorJS" target="_blank" style="color: #0088ff;">EmulatorJS</a> version: stable
+                </div>
                 
                 <div class="featured-games">
                     <h3>Real ROMs Available</h3>
@@ -360,12 +433,24 @@
                 <p>4. Your recently played games will be saved for quick access (stored locally).</p>
                 
                 <div class="note">
-                    <p><strong>Note:</strong> This emulator requires you to have your own ROM files. We've detected the following real ROMs in your system:</p>
+                    <p><strong>Important:</strong> This emulator loads ROMs from your local files. Please place your ROM files in the correct folders:</p>
                     <ul>
-                        <li>Pokémon Fire Red (GBA)</li>
-                        <li>Dragon Ball Z - Supersonic Warriors (GBA)</li>
+                        <li>GBA ROMs should be in: <code>roms/gba/</code></li>
+                        <li>NES ROMs should be in: <code>roms/nes/</code></li>
+                        <li>SNES ROMs should be in: <code>roms/snes/</code></li>
                     </ul>
-                    <p>Your ROM files are never uploaded anywhere - all processing happens locally in your browser.</p>
+                    <p><strong>If these folders don't exist</strong>, you need to create them:</p>
+                    <ol>
+                        <li>Create a folder named <code>roms</code> in the emulator directory</li>
+                        <li>Inside the <code>roms</code> folder, create system folders like <code>gba</code>, <code>nes</code>, <code>snes</code></li>
+                        <li>Place your ROM files in the appropriate system folder</li>
+                    </ol>
+                    <p>If you can't create these folders, you can also <a href="direct-load.html" style="color: #0088ff; text-decoration: underline;">upload ROMs directly</a>.</p>
+                    <p>The following ROMs are included as examples (create the folders and add these files):</p>
+                    <ul>
+                        <li>Pokémon Fire Red (GBA) - <code>roms/gba/Pokemon - Fire Red Version (U) (V1.1).gba</code></li>
+                        <li>Dragon Ball Z - Supersonic Warriors (GBA) - <code>roms/gba/Dragonball Z - Supersonic Warriors # GBA.GBA</code></li>
+                    </ul>
                     <p>We encourage supporting the original developers by purchasing their games when available.</p>
                 </div>
                 
@@ -473,8 +558,30 @@
         });
         
         debug("Initial page load started");
+        
+        // Function to test if EmulatorJS is working
+        function testEmulatorJS() {
+            debug("Testing EmulatorJS functionality...");
+            try {
+                // Simple test - if the CDN is accessible
+                const img = new Image();
+                img.onload = function() {
+                    debug("EmulatorJS CDN is accessible");
+                };
+                img.onerror = function() {
+                    debug("Warning: EmulatorJS CDN may not be accessible");
+                };
+                img.src = "https://cdn.emulatorjs.org/stable/data/favicon.ico";
+            } catch (e) {
+                debug("Error testing EmulatorJS: " + e.message);
+            }
+        }
+        
+        // Run tests after page load
+        window.addEventListener('load', testEmulatorJS);
     </script>
     
+    <script type="module" src="scripts/setup-roms.mjs"></script>
     <script src="scripts/main.mjs" type="module"></script>
 </body>
 </html> 

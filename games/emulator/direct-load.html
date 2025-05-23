@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct ROM Loader - EmulatorJS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #0088ff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+        }
+        
+        #emulator {
+            width: 100%;
+            height: 500px;
+            background-color: black;
+            margin: 20px 0;
+        }
+        
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #0088ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #333;
+        }
+        
+        .rom-selector {
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .rom-selector h3 {
+            color: #0088ff;
+            margin-bottom: 10px;
+        }
+        
+        .rom-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .rom-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #252525;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .rom-item:hover {
+            background-color: #333;
+        }
+        
+        .rom-name {
+            flex-grow: 1;
+        }
+        
+        .rom-system {
+            color: #0088ff;
+            padding: 3px 8px;
+            background-color: #1a1a1a;
+            border-radius: 3px;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+        
+        .rom-icon {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        .upload-section {
+            border-top: 1px solid #444;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+        
+        .upload-button {
+            background-color: #0088ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .error-panel {
+            background-color: #660000;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .error-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Direct ROM Loader</h1>
+        <p id="game-title">Select a ROM to play</p>
+        
+        <div id="status" class="status">
+            Ready to load ROMs directly from your device
+        </div>
+        
+        <div id="error-panel" class="error-panel">
+            <div class="error-title">Issue Loading ROM</div>
+            <div id="error-message">There was a problem loading the ROM file.</div>
+            <div style="margin-top: 5px;">Try uploading the ROM file directly instead:</div>
+        </div>
+        
+        <div class="rom-selector">
+            <h3>Available ROMs:</h3>
+            <ul class="rom-list" id="rom-list">
+                <li class="rom-item" data-path="roms/gba/Pokemon - Fire Red Version (U) (V1.1).gba" data-system="gba">
+                    <span class="rom-icon">🔥</span>
+                    <span class="rom-system">GBA</span>
+                    <span class="rom-name">Pokémon Fire Red</span>
+                </li>
+                <li class="rom-item" data-path="roms/gba/Dragonball Z - Supersonic Warriors # GBA.GBA" data-system="gba">
+                    <span class="rom-icon">👊</span>
+                    <span class="rom-system">GBA</span>
+                    <span class="rom-name">Dragon Ball Z - Supersonic Warriors</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="upload-section">
+            <h3>Upload Your Own ROM</h3>
+            <p>If the ROMs above don't work, upload your own:</p>
+            <select id="system-select">
+                <option value="gba">Game Boy Advance (GBA)</option>
+                <option value="nes">Nintendo (NES)</option>
+                <option value="snes">Super Nintendo (SNES)</option>
+                <option value="n64">Nintendo 64 (N64)</option>
+                <option value="gb">Game Boy (GB/GBC)</option>
+            </select>
+            <input type="file" id="rom-upload" class="file-input" accept=".gba,.gb,.gbc,.nes,.smc,.sfc,.z64,.n64">
+            <button id="upload-button" class="upload-button">Select ROM File</button>
+        </div>
+        
+        <div id="emulator"></div>
+        
+        <a href="index.html" class="back">Back to Emulator</a>
+    </div>
+    
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            const romList = document.getElementById('rom-list');
+            const statusElement = document.getElementById('status');
+            const gameTitleElement = document.getElementById('game-title');
+            const errorPanel = document.getElementById('error-panel');
+            const errorMessage = document.getElementById('error-message');
+            const uploadButton = document.getElementById('upload-button');
+            const romUpload = document.getElementById('rom-upload');
+            const systemSelect = document.getElementById('system-select');
+            
+            // Add click event to ROM items
+            const romItems = document.querySelectorAll('.rom-item');
+            romItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const romPath = item.dataset.path;
+                    const system = item.dataset.system;
+                    const romName = item.querySelector('.rom-name').textContent;
+                    
+                    // Reset error panel
+                    errorPanel.style.display = 'none';
+                    
+                    // Update UI
+                    statusElement.textContent = `Loading: ${romName}...`;
+                    gameTitleElement.textContent = `Playing: ${romName}`;
+                    
+                    // Load the ROM
+                    loadROM(romPath, romName, system);
+                });
+            });
+            
+            // Setup file upload
+            uploadButton.addEventListener('click', () => {
+                romUpload.click();
+            });
+            
+            romUpload.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const system = systemSelect.value;
+                    const romName = file.name.split('.')[0]; // Remove extension
+                    
+                    // Reset error panel
+                    errorPanel.style.display = 'none';
+                    
+                    // Update UI
+                    statusElement.textContent = `Loading uploaded ROM: ${romName}...`;
+                    gameTitleElement.textContent = `Playing: ${romName}`;
+                    
+                    // Load from file
+                    loadFromFile(file, romName, system);
+                }
+            });
+        });
+        
+        // Load ROM directly from server
+        function loadROM(romPath, romName, system) {
+            const statusElement = document.getElementById('status');
+            const errorPanel = document.getElementById('error-panel');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Check if the file exists
+            fetch(romPath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`ROM file not found: ${romPath}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    statusElement.textContent = `ROM file found! Starting emulator...`;
+                    
+                    // Create a blob URL for the file
+                    const blobUrl = URL.createObjectURL(blob);
+                    
+                    // Start the emulator with the blob URL
+                    startEmulator(blobUrl, romName, system);
+                })
+                .catch(error => {
+                    console.error("Error loading ROM:", error);
+                    statusElement.textContent = `Error loading ROM. Please try uploading it directly.`;
+                    statusElement.style.backgroundColor = "#aa2222";
+                    
+                    // Show error panel
+                    errorMessage.textContent = error.message;
+                    errorPanel.style.display = 'block';
+                });
+        }
+        
+        // Load ROM from uploaded file
+        function loadFromFile(file, romName, system) {
+            const statusElement = document.getElementById('status');
+            
+            try {
+                // Create a blob URL for the uploaded file
+                const blobUrl = URL.createObjectURL(file);
+                
+                statusElement.textContent = `ROM file uploaded! Starting emulator...`;
+                
+                // Start the emulator
+                startEmulator(blobUrl, romName, system);
+            } catch (error) {
+                console.error("Error with uploaded file:", error);
+                statusElement.textContent = `Error with uploaded file: ${error.message}`;
+                statusElement.style.backgroundColor = "#aa2222";
+            }
+        }
+        
+        // Start the EmulatorJS with the provided ROM
+        function startEmulator(romUrl, romName, system) {
+            const statusElement = document.getElementById('status');
+            
+            // Set up EmulatorJS
+            window.EJS_player = '#emulator';
+            window.EJS_gameName = romName;
+            window.EJS_biosUrl = '';
+            window.EJS_gameUrl = romUrl;
+            window.EJS_core = system;
+            window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+            window.EJS_startOnLoaded = true;
+            
+            // Add callbacks
+            window.EJS_onGameStart = function() {
+                console.log(`${romName} started successfully`);
+                statusElement.style.display = 'none';
+            };
+            
+            // Load EmulatorJS
+            const script = document.createElement('script');
+            script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+            document.body.appendChild(script);
+        }
+    </script>
+</body>
+</html> 
